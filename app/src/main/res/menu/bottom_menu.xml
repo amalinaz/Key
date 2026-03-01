@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/home"
+        android:title="@string/HomeTitle"
+        android:icon="@drawable/homeicon"
+        />
+
+    <item
+        android:id="@+id/schedule"
+        android:title="@string/ScheduleTitle"
+        android:icon="@drawable/scheduleicon"
+        />
+
+    <item
+        android:id="@+id/search"
+        android:title="@string/SearchTitle"
+        android:icon="@drawable/searchicon"
+        />
+
+    <item
+        android:id="@+id/chat"
+        android:title="@string/ChatTitle"
+        android:icon="@drawable/chaticon"
+        />
+
+    <item
+        android:id="@+id/user"
+        android:title="@string/UserTitle"
+        android:icon="@drawable/usericon"
+        />
+
+</menu>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:cardUseCompatPadding="true"
+    android:backgroundTint="@color/white"
+
+    android:background="@color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/IVServicePhoto"
+            android:layout_width="75dp"
+            android:layout_height="100dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/circleImageView"
+            tools:srcCompat="@tools:sample/avatars" />
+
+        <TextView
+            android:id="@+id/TVServiceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/alegreyasans_bold"
+            android:text="Makeup 1"
+            app:layout_constraintStart_toEndOf="@+id/IVServicePhoto"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/TVServicePrice"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/alegreyasans_bold"
+            android:text="Rp. 1"
+            app:layout_constraintStart_toEndOf="@+id/IVServicePhoto"
+            app:layout_constraintTop_toBottomOf="@+id/TVServiceName" />
+
+        <Button
+            android:id="@+id/BtnEdit"
+            android:layout_width="85dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@color/secondary"
+            android:text="Edit"
+            android:textColor="@color/text"
+            android:textSize="10sp"
+            app:layout_constraintStart_toEndOf="@+id/IVServicePhoto"
+            app:layout_constraintTop_toBottomOf="@+id/TVServicePrice" />
+
+        <Button
+            android:id="@+id/BtnDelete"
+            android:layout_width="85dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@color/secondary"
+            android:text="Delete"
+            android:textColor="@color/text"
+            android:textSize="10sp"
+            app:layout_constraintStart_toEndOf="@+id/BtnEdit"
+            app:layout_constraintTop_toBottomOf="@+id/TVServicePrice" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

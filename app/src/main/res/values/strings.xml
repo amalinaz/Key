@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">KeyApp</string>
+
+    <string name="introtitle">Graceful and Feminine</string>
+    <string name="introsubtitle">Every woman deserves to feel beautiful and pampered.
+        We’re here with personalized beauty services to help you shine from the inside out.</string>
+    <string name="introbtn">Get Started</string>
+    <string name="signin">Sign In</string>
+    <string name="signup">Sign Up</string>
+    <string name="signintitle">Hello Again!</string>
+    <string name="signinsubtitile">Sign in to your account</string>
+    <string name="signuptitle">Hello!</string>
+    <string name="signupsubtitle">Register as Beauty Artist</string>
+    <string name="email">Email Address</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="changePass">Forgot your password?</string>
+    <string name="or">Or with</string>
+    <string name="signinBA">Sign in as Beauty Artist</string>
+    <string name="signupBA">Sign up as Beauty Artist</string>
+
+    <string name="signinUser">Sign in as User</string>
+    <string name="signupUser">Sign up as User</string>
+
+
+    <!--    Navbar-->
+    <string name="HomeTitle">Home</string>
+    <string name="ScheduleTitle">Schedule</string>
+    <string name="SearchTitle">Search</string>
+    <string name="ChatTitle">Chat</string>
+    <string name="UserTitle">User</string>
+
+    <!--    home-->
+    <string name="service">Services</string>
+    <string name="MUA">Makeup</string>
+    <string name="NailArt">Nail Art</string>
+    <string name="Eyelash">Eyelash</string>
+
+    <string name="Recomendasi">Recommendation</string>
+
+    <!--    home beauty artist-->
+    <string name="services">Your Services</string>
+    <string name="viewservice">View Service</string>
+    <string name="portofolio">Portofolio</string>
+    <string name="rating">Rating</string>
+    <string name="history">History</string>
+    <string name="manageSchedule">Manage Schedule</string>
+    <string name="orderlist">Order List</string>
+
+    <string name="upcoming">Upcoming Schedule</string>
+    <string name="Waiting">Waiting for Confirmation</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <!--    service-->
+    <string name="serviceHeader">Service</string>
+
+    <string name="ServiceName">Service Name</string>
+    <string name="AddServiceName">Add Service Name</string>
+    <string name="ServicePrice">Service Price</string>
+    <string name="AddServicePrice">Add Service Price</string>
+    <string name="ServiceCategory">Service Category</string>
+    <string name="SelectCategory">Select Service Category</string>
+    <string-array name="service_categories">
+        <item>Select Service Category</item>
+        <item>Make Up</item>
+        <item>Nail Art</item>
+        <item>Eyelash</item>
+    </string-array>
+    <string name="ServiceDesc">Service Description</string>
+    <string name="AddServiceDesc">Add Service Description</string>
+    <string name="ServiceImage">Image</string>
+    <string name="AddImage">Add Image</string>
+    <string name="AddTime">Available Time</string>
+
+
+    <!--    profile-->
+    <string name="Profile">Profile</string>
+    <string name="Location">Location</string>
+    <string name="AddLocation">Add Location</string>
+
+    <string name="inputTime">Input Available Time</string>
+
+    <string-array name="location">
+        <item>Select Service Category</item>
+        <item>Make Up</item>
+        <item>Nail Art</item>
+        <item>Eyelash</item>
+    </string-array>
+
+    <string-array name="Hari">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+
+    <string name="setTime">Set Time</string>
+    <string name="save">Save</string>
+
+    <string name="PhoneNumber">Phone Number</string>
+    <string name="addPhone">Add Phone Number</string>
+    <string name="changeProfile">Change Photo</string>
+
+    <string name="viewAll">View All</string>
+    <string name="Review">Review</string>
+    <string name="Pricelist">Pricelist</string>
+    <string name="Appointment">Book Appointment</string>
+
+    <string name="YOUR_MAP_API_KEY">AIzaSyD6UjVeIyqdZjo-4LjzBDgEj6FA3ddMiy4</string>
+</resources>
