@@ -246,7 +246,7 @@
                     android:layout_height="160dp">
 
                     <TextView
-                        android:id="@+id/textView17"
+                        android:id="@+id/locationTV"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
 

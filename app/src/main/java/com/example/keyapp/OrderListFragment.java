@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class OrderListFragment extends Fragment {
+public class OrderListFragment extends Fragment{
 
     ImageButton ol_backBtn;
     RecyclerView ol_orderListRV;
@@ -33,6 +33,7 @@ public class OrderListFragment extends Fragment {
     FirebaseFirestore db;
     FirebaseAuth auth;
     private String uid;
+    private String orderId;
 
     private List<Order> orderList = new ArrayList<>();
     @Override
@@ -48,13 +49,67 @@ public class OrderListFragment extends Fragment {
       db = FirebaseFirestore.getInstance();
       auth = FirebaseAuth.getInstance();
 
-      uid = auth.getCurrentUser().getUid();
+        if(auth.getCurrentUser() != null){
+            uid = auth.getCurrentUser().getUid();
+            Log.d("FirestoreTest","UID: "+uid);
+        }else{
+            Log.d("FirestoreTest","User null");
+        }
 
-      getOrderData();
+      getOrderIdData(uid);
+
+        adapter.setOnItemClickListener(new OrderListAdapter.OnItemClickListener() {
+            @Override
+            public void onConfirmClick(int position) {
+                Order order = orderList.get(position);
+                order.setStatus("Confirmed");
+                FirebaseFirestore.getInstance()
+                        .collection("orders")
+                        .document(order.getOrderId())
+                        .update("status", "Confirmed")
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Order Confirmed", Toast.LENGTH_SHORT).show();
+                            adapter.notifyItemChanged(position);
+                            Log.d("Firestore", "Confirm");
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Failed update", Toast.LENGTH_SHORT).show();
+                            Log.d("Firestore", "Confirm gagal");
+                        });
+            }
+
+            @Override
+            public void onRejectClick(int position) {
+                Order order = orderList.get(position);
+                order.setStatus("Rejected");
+                FirebaseFirestore.getInstance()
+                        .collection("orders")
+                        .document(order.getOrderId())
+                        .update("status", "Rejected")
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Order Rejected", Toast.LENGTH_SHORT).show();
+                            adapter.notifyItemChanged(position);
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Failed update", Toast.LENGTH_SHORT).show();
+                        });
+            }
+
+            @Override
+            public void onViewDetailClick(int position) {
+                Order order = orderList.get(position);
+
+//                Intent intent = new Intent(OrderListActivity.this, OrderDetailActivity.class);
+//                intent.putExtra("orderId", order.getOrderId());
+//                startActivity(intent);
+            }
+        });
+
+
       return rootView;
     }
 
-    private void getOrderData() {
+    private void getOrderIdData(String uid) {
         db.collection("service_provider_orders")
                 .document(uid)
                 .collection("orders")
@@ -65,24 +120,40 @@ public class OrderListFragment extends Fragment {
                         for (DocumentSnapshot document : queryDocumentSnapshots) {
                             Map<String, Object> orderData = document.getData();
                             if (orderData != null) {
-                                String orderId = document.getId();
+                                orderId = document.getId();
                                 orderData.put("orderId", orderId);
                                 orders.add(orderData);
+                                getOrderData(orderId);
                             }
                         }
-
-//                        // Mengatur RecyclerView dengan data pesanan
-//                        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-//                        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-//                        OrderAdapter orderAdapter = new OrderAdapter(orders);  // Adapter untuk menampilkan data
-//                        recyclerView.setAdapter(orderAdapter);
                     } else {
                         Log.d("Firestore", "No orders found for this BA");
                     }
+
                 })
                 .addOnFailureListener(e -> {
                     Log.e("Firestore", "Error getting orders", e);
                 });
     }
+
+    private void getOrderData(String orderId){
+        db.collection("orders").document(orderId).get().addOnSuccessListener(doc -> {
+
+                    if(doc.exists()){
+                        Order order = doc.toObject(Order.class);
+
+                        if(order != null){
+                            order.setOrderId(orderId);
+                            orderList.add(order);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error getting order", e);
+                });
+    }
+
 
 }

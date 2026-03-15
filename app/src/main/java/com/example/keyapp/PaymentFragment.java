@@ -127,8 +127,17 @@ public class PaymentFragment extends Fragment {
         bookScheduleAdapter = new BookScheduleAdapter(bookScheduleItemsList, getContext());
         pay_itemRV.setAdapter(bookScheduleAdapter);
 
-        pay_usernameTV.setText(getUsername(uid));
-        Log.d("Payment", "usn" + getUsername(uid));
+        getUsername(uid, new OnUsernameFetchedListener() {
+            @Override
+            public void onUsernameFetched(String username) {
+                if (username != null) {
+                    pay_usernameTV.setText(username);
+                    Log.d("Payment", "Username: " + username);
+                }
+            }
+        });
+
+//        Log.d("Payment", "usn" + getUsername(uid));
         Log.d("uid", "uid" + uid);
         pay_subtotalTV.setText(Double.toString(servicePrice));
         pay_totalTV.setText(Double.toString(servicePrice));
@@ -140,29 +149,34 @@ public class PaymentFragment extends Fragment {
         pay_orderBtn.setOnClickListener(v -> {
             String userId = auth.getCurrentUser().getUid();
             String username = pay_usernameTV.getText().toString();
-            Order newOrder = new Order(userId, username, serviceName, selectedDate,selectedTime,servicePrice, "Pending", BAid, BAName);
-            counterRef.get().addOnCompleteListener(orderCounter ->{
-                if(orderCounter.isSuccessful()){
-                    Integer order = orderCounter.getResult().getValue(Integer.class);
-                    if (order == null) {
-                        order = 1;
-                        counterRef.setValue(orderCounter);
-                        Log.d("Firebase", "Setting initial userCounter to 1");
-                    }
 
-                    String orderId = "O" + String.format("%03d", order+1);
+            counterRef.get().addOnCompleteListener(orderCounter -> {
+                if(orderCounter.isSuccessful()){
+
+                    Integer order = orderCounter.getResult().getValue(Integer.class);
+
+                    if(order == null){
+                        order = 1;
+                    }
+                    int orderCount = order + 1;
+                    String orderId = "O" + String.format("%03d",orderCount);
+                    Order newOrder = new Order(orderId, userId, username, serviceName, selectedDate,selectedTime, servicePrice, "Pending", BAid, BAName);
                     db.collection("orders")
                             .document(orderId)
                             .set(newOrder)
                             .addOnSuccessListener(aVoid -> {
+
+                                counterRef.setValue(orderCount); // ✅ sekarang tidak merah
+
                                 Toast.makeText(getContext(), "Order submitted successfully", Toast.LENGTH_SHORT).show();
+
                                 passOrderToServiceProvider(orderId, BAid, BAName);
+
+                                goToOrderSuccess();
                             })
                             .addOnFailureListener(e -> {
                                 Toast.makeText(getContext(), "Failed to submit order", Toast.LENGTH_SHORT).show();
                             });
-                    goToOrderSuccess();
-
                 }
             });
 
@@ -213,24 +227,26 @@ public class PaymentFragment extends Fragment {
         return selectedDate;
     }
 
-    private String getUsername(String userId){
-            db.collection("users").document(userId).get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                String username = document.getString("username");
-                                Username = username;
-                                // Log atau lakukan operasi lain dengan username
-                                Log.d("AppointmentFragment", "Fetched Username: " + username);
-                            } else {
-                                Log.d("AppointmentFragment", "Document does not exist.");
-                            }
+    private void getUsername(String userId, final OnUsernameFetchedListener listener){
+        db.collection("users").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            String username = document.getString("username");
+                            listener.onUsernameFetched(username);
                         } else {
-                            Log.e("AppointmentFragment", "Error fetching username: " + task.getException());
+                            Log.d("AppointmentFragment", "Document does not exist.");
+                            listener.onUsernameFetched(null);
                         }
-                    });
+                    } else {
+                        Log.e("AppointmentFragment", "Error fetching username: " + task.getException());
+                        listener.onUsernameFetched(null);
+                    }
+                });
+    }
 
-        return Username;
+    public interface OnUsernameFetchedListener {
+        void onUsernameFetched(String username);
     }
 }

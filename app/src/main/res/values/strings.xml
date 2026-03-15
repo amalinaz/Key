@@ -77,6 +77,8 @@
 
     <!--    profile-->
     <string name="Profile">Profile</string>
+    <string name="ServiceLoc">Service Location / Area</string>
+    <string name="addServiceLoc">Enter the location where customers can find or book your services.</string>
     <string name="Location">Location</string>
     <string name="AddLocation">Add Location</string>
 
@@ -111,5 +113,14 @@
     <string name="Pricelist">Pricelist</string>
     <string name="Appointment">Book Appointment</string>
 
+    <string name="locationtype">Service Location Type</string>
+    <string-array name="loctype">
+        <item>Customer visits my place</item>
+        <item>I travel to the customer</item>
+    </string-array>
+
+    <string name="confirm">Confirm</string>
+    <string name="Reject">Reject</string>
+    <string name="viewDetail">View Detail</string>
     <string name="YOUR_MAP_API_KEY">AIzaSyD6UjVeIyqdZjo-4LjzBDgEj6FA3ddMiy4</string>
 </resources>

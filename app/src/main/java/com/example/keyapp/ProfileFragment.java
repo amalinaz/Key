@@ -15,6 +15,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -31,6 +32,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +41,7 @@ import com.bumptech.glide.Glide;
 import com.example.keyapp.Adapter.TimeListAdapter;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -64,7 +68,10 @@ public class ProfileFragment extends Fragment {
     TextView profile_changeProfile;
     ImageButton profile_backBtn, profile_saveBtn;
     Button profile_logoutBtn;
+    TextView locationTV;
     EditText profile_username, profile_email, profile_phone, profile_location;
+    ConstraintLayout profile_locTypeCL, profile_locCL;
+    RadioGroup locTypeRG;
     Uri image;
 
     TimeListAdapter adapter;
@@ -91,9 +98,17 @@ public class ProfileFragment extends Fragment {
         profile_email=  rootview.findViewById(R.id.profile_email);
         profile_phone =  rootview.findViewById(R.id.profile_phone);
         profile_location = rootview.findViewById(R.id.profile_location);
+        locationTV = rootview.findViewById(R.id.locationTV);
 
         profile_changeProfile = rootview.findViewById(R.id.profile_changeProfile);
         profile_imageIV = rootview.findViewById(R.id.profile_imageIV);
+
+        profile_locTypeCL = rootview.findViewById(R.id.profile_locTypeCL);
+        profile_locCL = rootview.findViewById(R.id.profile_locCL);
+        locTypeRG = rootview.findViewById(R.id.profile_locTypeRG);
+
+        profile_locTypeCL.setVisibility(View.GONE);
+        profile_locCL.setVisibility(View.GONE);
 
         daysOfWeek = getResources().getStringArray(R.array.Hari);
 
@@ -135,6 +150,39 @@ public class ProfileFragment extends Fragment {
                         Log.d("PROFILE_FIRESTORE", "Data: " + doc.getData());
 
                         Map<String, Object> location = (Map<String, Object>) doc.get("location");
+                        String locationType = (String) doc.get("locationType");
+
+                        if(role == 1) {
+                            profile_location.setHint("Add Location");
+                            profile_locCL.setVisibility(View.VISIBLE);
+                        } else if(role == 2){
+
+                            String[] options = getResources().getStringArray(R.array.loctype);
+
+                            for (String option : options) {
+                                RadioButton radioButton = new RadioButton(requireContext());
+                                radioButton.setText(option);
+                                locTypeRG.addView(radioButton);
+                            }
+
+                            locationTV.setText(getString(R.string.ServiceLoc));
+                            profile_location.setHint("Enter the location where customers can find or book your services");
+                            profile_locTypeCL.setVisibility(View.VISIBLE);
+                            profile_locCL.setVisibility(View.VISIBLE);
+
+                            if (locationType != null) {
+                                for (int i = 0; i < locTypeRG.getChildCount(); i++) {
+                                    RadioButton radioButton = (RadioButton) locTypeRG.getChildAt(i);
+                                    if (locationType.equals("visit") && radioButton.getText().toString().equals("Customer visits my place")) {
+                                        radioButton.setChecked(true);
+                                        break;
+                                    } else if (locationType.equals("travel") && radioButton.getText().toString().equals("I travel to the customer")) {
+                                        radioButton.setChecked(true);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
 
                         String loc = null;
                         if (location != null) {
@@ -157,6 +205,8 @@ public class ProfileFragment extends Fragment {
                         }else{
                             profile_imageIV.setImageResource(R.drawable.profile_no);
                         }
+
+
                         if (username != null) profile_username.setText(username);
                         if (email != null) profile_email.setText(email);
                         if (loc != null) profile_location.setText(loc);
@@ -188,6 +238,11 @@ public class ProfileFragment extends Fragment {
             getActivity().onBackPressed();
         });
 
+        profile_saveBtn.setOnClickListener(v -> {
+            saveProfileToFirestore();
+            saveLocationCombined();
+        });
+
     }
 
 
@@ -195,7 +250,6 @@ public class ProfileFragment extends Fragment {
         String newUsername = profile_username.getText().toString().trim();
         String newEmail = profile_email.getText().toString().trim();
         String phone = profile_phone.getText().toString().trim();
-
 
         FirebaseUser currentUser1 = mAuth.getCurrentUser();
         String uid1 = currentUser1.getUid();
@@ -205,10 +259,35 @@ public class ProfileFragment extends Fragment {
         updateUser.put("email", newEmail);
         updateUser.put("phone", phone);
 
-
         if (image != null) {
             uploadImage(image, uid1);
         }
+
+        if(role == 2){
+            int selectedId = locTypeRG.getCheckedRadioButtonId();
+
+            if (selectedId == -1) {
+                Toast.makeText(getContext(), "Please select location type", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            RadioButton selectedRadio = requireView().findViewById(selectedId);
+            String selectedText = selectedRadio.getText().toString();
+
+            String locationType;
+
+            if (selectedText.equals("Customer visits my place")) {
+                locationType = "visit";
+            } else if (selectedText.equals("I travel to the customer")) {
+                locationType = "travel";
+            } else {
+                locationType = "unknown";
+            }
+
+            updateUser.put("locationType", locationType);
+        }
+
+
 
         db.collection("users").document(uid1)
                 .update(updateUser)
@@ -222,7 +301,6 @@ public class ProfileFragment extends Fragment {
         if (!newEmail.isEmpty()) {
             currentUser1.updateEmail(newEmail);
         }
-
 
     }
 

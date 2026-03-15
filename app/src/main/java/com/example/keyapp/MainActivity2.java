@@ -66,6 +66,11 @@ public class MainActivity2 extends AppCompatActivity {
             showManageSchedule();
         });
 
+        main2_OrderListbtn.setOnClickListener(v -> {
+            Log.d("MainActivity2", "OrderList clicked");
+            showOrderList();
+        });
+
 
         auth = FirebaseAuth.getInstance();
         if(auth.getCurrentUser() == null){
@@ -126,6 +131,17 @@ public class MainActivity2 extends AppCompatActivity {
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(main.getId(), profileFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    private void showOrderList(){
+        Fragment orderListFragment = new OrderListFragment();
+        Log.d("MainActivity2", "OrderList Button called");
+        FrameLayout main = findViewById(R.id.main2);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(main.getId(), orderListFragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }

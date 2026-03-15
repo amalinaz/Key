@@ -1,6 +1,7 @@
 package com.example.keyapp.Models;
 
 public class Order {
+    private String orderId;
     private String userId;
     private String username;
     private String serviceName;
@@ -11,12 +12,15 @@ public class Order {
 
     private String BAid;
     private String BAName;
+
     public Order() {
+
     }
 
 
-    public Order(String userId, String username, String serviceName, String selectedDate,
+    public Order(String orderId, String userId, String username, String serviceName, String selectedDate,
                  String selectedTime, double servicePrice, String status, String BAid, String BAName) {
+        this.orderId = orderId;
         this.userId = userId;
         this.username = username;
         this.serviceName = serviceName;
@@ -99,5 +103,13 @@ public class Order {
 
     public void setBAName(String BAName) {
         this.BAName = BAName;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 }
