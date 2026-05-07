@@ -1,6 +1,8 @@
 package com.example.keyapp;
 
 import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -14,7 +16,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.keyapp.Adapter.PortofolioAdapter;
@@ -53,7 +57,7 @@ public class PortofolioFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_portofolio, container, false);
 
-        porto_backBtn = rootView.findViewById(R.id.ol_backBtn);
+        porto_backBtn = rootView.findViewById(R.id.oldetail_backBtn);
         porto_gridRV = rootView.findViewById(R.id.porto_gridRV);
         porto_addBtn = rootView.findViewById(R.id.porto_addBtn);
         porto_addBtn.setVisibility(View.GONE);
@@ -69,7 +73,6 @@ public class PortofolioFragment extends Fragment {
             uidBA = getArguments().getString("BAid");
         }
 
-        Log.d("Portofolio", "uidBA" +uidBA);
         if(role == 1){
             fetchPortofolio(uidBA);
         }else if(role == 2){
@@ -95,14 +98,31 @@ public class PortofolioFragment extends Fragment {
     }
 
     private void showDeleteDialog(Portofolio item) {
-        new AlertDialog.Builder(getContext())
-                .setTitle("Hapus foto?")
-                .setMessage("Foto ini akan dihapus dari portofolio.")
-                .setPositiveButton("Hapus", (dialog, which) -> {
-                    deletePhoto(item);
-                })
-                .setNegativeButton("Batal", null)
-                .show();
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).create();
+        View view = getLayoutInflater().inflate(R.layout.layout_alert_dialog, null);
+        dialog.setView(view);
+        if(dialog.getWindow() != null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        dialog.setCancelable(false);
+
+        TextView titleTV = view.findViewById(R.id.dialog_title);
+        TextView messageTV = view.findViewById(R.id.dialog_message);
+        Button noBtn = view.findViewById(R.id.dialog_btnA);
+        Button deleteBtn = view.findViewById(R.id.dialog_btnB);
+
+        titleTV.setText("Delete Photo?");
+        messageTV.setText("This photo will be deleted in portofolio.");
+        noBtn.setText("No");
+        deleteBtn.setText("Delete");
+
+        deleteBtn.setOnClickListener(v -> {
+            deletePhoto(item);
+            dialog.dismiss();
+        });
+
+        noBtn.setOnClickListener(v -> dialog.dismiss());
     }
 
     private void deletePhoto(Portofolio item) {

@@ -1,0 +1,35 @@
+package com.example.keyapp.Helper;
+
+import android.location.Location;
+import androidx.annotation.NonNull;
+import com.example.keyapp.Models.BAprofile;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class BAProfileHelper {
+
+    public static List<BAprofile> rankProviders(List<BAprofile> providers) {
+        double wRating = 0.3, wDistance = 0.25, wExperience = 0.25, wPrice = 0.2;
+
+        double maxRating = providers.stream().mapToDouble(p -> p.getRating()).max().orElse(1);
+        double minDistance = providers.stream().mapToDouble(p -> p.getDistance()).min().orElse(1);
+        double maxExp = providers.stream().mapToDouble(p -> p.getExperience()).max().orElse(1);
+        double minPrice = providers.stream().mapToDouble(p -> p.getMinPrice()).min().orElse(1);
+
+        for (BAprofile p : providers) {
+            double normRating = p.getRating()/maxRating;
+            double normDistance = minDistance/p.getDistance();
+            double normExp = p.getExperience()/maxExp;
+            double normPrice = (double)minPrice/p.getMinPrice();
+
+            double score = normRating*wRating + normDistance*wDistance + normExp*wExperience + normPrice*wPrice;
+            p.setScore(score);
+        }
+
+        Collections.sort(providers, (a,b) -> Double.compare(b.getScore(), a.getScore()));
+        return providers;
+    }
+}

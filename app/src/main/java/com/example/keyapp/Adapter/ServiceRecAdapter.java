@@ -50,7 +50,7 @@ public class ServiceRecAdapter extends RecyclerView.Adapter<ServiceRecAdapter.Se
         BAprofile item = BAlist.get(position);
         holder.name.setText(item.getBAname());
         holder.distance.setText(String.format("%.2f km" ,item.getDistance()));
-        holder.rate.setText("⭐ 5.0");
+        holder.rate.setText("⭐ "+item.getRating());
         NumberFormat formatter =
                 NumberFormat.getInstance(new Locale("id", "ID"));
         holder.price.setText("Start from Rp."+ formatter.format(item.getMinPrice()));
@@ -74,6 +74,10 @@ public class ServiceRecAdapter extends RecyclerView.Adapter<ServiceRecAdapter.Se
 
     public interface OnItemCLickListener{
         void getServiceDetail(int position);
+    }
+
+    public List<BAprofile> getList() {
+        return this.BAlist;
     }
     public class ServiceRecViewHolder extends RecyclerView.ViewHolder{
 

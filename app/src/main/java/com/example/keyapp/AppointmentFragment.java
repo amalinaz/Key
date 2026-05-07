@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.CalendarView;
 import android.widget.ImageButton;
 
+import com.example.keyapp.Adapter.ConfirmAppointmentAdapter;
 import com.example.keyapp.Adapter.ScheduleItemAdapter;
 import com.example.keyapp.Models.ScheduleItem;
 import com.google.firebase.firestore.DocumentReference;
@@ -45,7 +46,7 @@ public class AppointmentFragment extends Fragment implements ScheduleItemAdapter
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_appointment, container, false);
-        a_backBtn = rootView.findViewById(R.id.pay_backBtn);
+        a_backBtn = rootView.findViewById(R.id.a_backBtn);
         a_calendarCV = rootView.findViewById(R.id.a_calendarCV);
         a_scheduleRV = rootView.findViewById(R.id.a_scheduleRV);
 
@@ -57,23 +58,21 @@ public class AppointmentFragment extends Fragment implements ScheduleItemAdapter
             serviceName = getArguments().getString("SERVICE_NAME");
             servicePrice = getArguments().getDouble("SERVICE_PRICE");
             estimatedTime = getArguments().getInt("SERVICE_ESTTIME");
-            if (Baid == null || serviceID == null) {
-                Log.e("AppointmentFragment", "Baid or ServiceID is null");
-
-
-            }
-            Log.d("AppointmentFragment", "Service id" +serviceID);
-            Log.d("AppointmentFragment", "BA id" +Baid);
         }
 
+        long calendarDateMillis = a_calendarCV.getDate();
+        Date date = new Date(calendarDateMillis);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String today = sdf.format(date);
+        String dayOfWeeks = getDayOfWeek(today);
+        selectedDate = today;
+        
+        updateScheduleForDate(dayOfWeeks, Baid);
 
         a_calendarCV.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             selectedDate = year + "-" + (month + 1) + "-" + dayOfMonth;
             String dayOfWeek = getDayOfWeek(selectedDate);
-            Log.d("AppointmentFragment", "Selected day: " + dayOfWeek);
             updateScheduleForDate(dayOfWeek, Baid);
-
-            Log.e("AppointmentFragment", "Update schedule for date: " + selectedDate);
         });
 
         a_scheduleRV.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -102,26 +101,19 @@ public class AppointmentFragment extends Fragment implements ScheduleItemAdapter
                             DocumentSnapshot profileDocument = profileTask.getResult();
                             if (profileDocument.exists()) {
                                 BAName = profileDocument.getString("userName");
-                                Log.d("Firestore", "UserName:" + BAName);
-
                                 scheduleItems.clear();
                                 for (String day : availableTimes.keySet()) {
                                     if (daysChecked.getOrDefault(day, false)) {
 
                                         List<String> timesForDay = availableTimes.get(day);
-                                        Log.d("Firestore", "time" + timesForDay);
                                         for (String time : timesForDay) {
-                                            Log.d("Firestore", "time loop" + time);
                                             if (day.equals(selectedDate)) {
                                                 ScheduleItem scheduleItem = new ScheduleItem(time, estimatedTime, BAName);
                                                 scheduleItems.add(scheduleItem);
-                                                Log.d("Firestore", "scheduleItem" + scheduleItem);
-
                                             }
                                         }
                                     }
                                 }
-                                Log.d("AppointmentFragment", "Schedule items count before notify: " + scheduleItems.size());
                                 itemAdapter.notifyDataSetChanged();
                             }
                         }
@@ -148,9 +140,7 @@ public class AppointmentFragment extends Fragment implements ScheduleItemAdapter
     public void onItemClick(int position) {
         String selectedTime = scheduleItems.get(position).getTime();
 
-        FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-        PaymentFragment paymentFragment = new PaymentFragment();
-
+        ConfirmAppointmentFragment confirmAppointmentFragment = new ConfirmAppointmentFragment();
         Bundle bundle = new Bundle();
         bundle.putInt("position", position);
         bundle.putString("BAid", Baid);
@@ -161,14 +151,7 @@ public class AppointmentFragment extends Fragment implements ScheduleItemAdapter
         bundle.putString("serviceID", serviceID);
         bundle.putString("serviceName", serviceName);
         bundle.putDouble("servicePrice", servicePrice);
-
-
-//        bundle.putString();
-
-
-        paymentFragment.setArguments(bundle);
-        transaction.replace(R.id.appointmentLayout, paymentFragment);
-        transaction.addToBackStack(null);  // Agar FragmentA tetap di-back stack
-        transaction.commit();
+        confirmAppointmentFragment.setArguments(bundle);
+        ((MainActivity) requireActivity()).openFragment(confirmAppointmentFragment, false);
     }
 }

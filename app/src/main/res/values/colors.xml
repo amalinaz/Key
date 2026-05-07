@@ -4,6 +4,7 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="text">#262122</color>
+    <color name="text2">#a49d9e</color>
     <color name="primary">#C2979B</color>
     <color name="secondary">#EEC6CA</color>
     <color name="teritary">#F2E6E7</color>
@@ -11,4 +12,6 @@
     <color name="primary2">#FF5D8F</color>
     <color name="secondary2">#FF87AB</color>
     <color name="teritary2">#FFC4D6</color>
+
+    <color name="red">#FF0000</color>
 </resources>

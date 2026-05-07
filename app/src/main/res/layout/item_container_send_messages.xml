@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="10.40dp"
+    android:padding="5.20dp">
+
+
+    <TextView
+        android:id="@+id/csMessageTV"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_send_message"
+        android:paddingStart="15.60dp"
+        android:paddingTop="10.40dp"
+        android:paddingEnd="15.60dp"
+        android:paddingBottom="10.40dp"
+        android:text="TextView"
+        android:textColor="@color/text"
+        android:textSize="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_max="wrap"
+        app:layout_constraintWidth_percent="0.8" />
+
+    <TextView
+        android:id="@+id/csDateTimeTV"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textColor="@color/text2"
+        android:textSize="10sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/csMessageTV" />
+
+    <TextView
+        android:id="@+id/csReadTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="TextView"
+        android:textColor="@color/text2"
+        android:textSize="10sp"
+        app:layout_constraintEnd_toStartOf="@+id/csDateTimeTV"
+        app:layout_constraintTop_toBottomOf="@+id/csMessageTV" />
+</androidx.constraintlayout.widget.ConstraintLayout>

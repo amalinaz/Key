@@ -3,7 +3,6 @@ package com.example.keyapp;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,25 +16,19 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.example.keyapp.Adapter.BookScheduleAdapter;
+import com.example.keyapp.Helper.NotificationHelper;
 import com.example.keyapp.Models.BookScheduleItem;
 import com.example.keyapp.Models.Order;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -44,11 +37,11 @@ public class PaymentFragment extends Fragment {
     private ImageButton pay_backBtn;
     private Button pay_orderBtn;
     private RecyclerView pay_itemRV;
-    private TextInputEditText pay_usernameTV, pay_inputTF;
+    private TextInputEditText pay_usernameTV, pay_inputTF, pay_locTV;
     private RadioGroup pay_paymentMethodRG;
     private TextView pay_totalTV, pay_subtotalTV;
     private String selectedPaymentMethod;
-    private String userId, Username;
+    private String userId, username, location;
     private String serviceId, BAid,BAName, selectedDate, selectedTime, date, serviceName;
 
     private double servicePrice;
@@ -63,7 +56,6 @@ public class PaymentFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View rootview = inflater.inflate(R.layout.fragment_payment, container, false);
         pay_backBtn = rootview.findViewById(R.id.pay_backBtn);
         pay_orderBtn = rootview.findViewById(R.id.pay_orderBtn);
@@ -73,6 +65,7 @@ public class PaymentFragment extends Fragment {
         pay_paymentMethodRG = rootview.findViewById(R.id.pay_paymentMethodRG);
         pay_totalTV = rootview.findViewById(R.id.pay_totalTV);
         pay_subtotalTV = rootview.findViewById(R.id.pay_subtotalTV);
+        pay_locTV = rootview.findViewById(R.id.pay_locTV);
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
@@ -109,36 +102,27 @@ public class PaymentFragment extends Fragment {
             }
         });
 
-        if(getArguments() != null ){
-            serviceId = getArguments().getString("serviceID");
+        if (getArguments() != null) {
+            bookScheduleItemsList = (List<BookScheduleItem>) getArguments().getSerializable("bookScheduleItems");
+            username = getArguments().getString("username");
+            location = getArguments().getString("location");
             BAid = getArguments().getString("BAid");
-            BAName = getArguments().getString("BAName");
-            selectedDate = getArguments().getString("selectedDate");
-            selectedTime = getArguments().getString("selectedTime");
-            serviceName = getArguments().getString("serviceName");
+            BAName = getArguments().getString("BAname");
+            serviceName = getArguments().getString("ServiceName");
+            selectedDate = getArguments().getString("SelectedDate");
+            selectedTime = getArguments().getString("SelectedTime");
             servicePrice = getArguments().getDouble("servicePrice");
 
         }
 
-        date = formatDate(selectedDate);
-        BookScheduleItem bookScheduleItem = new BookScheduleItem(BAName, serviceName, date, selectedTime);
-        bookScheduleItemsList.add(bookScheduleItem);
+        pay_locTV.setText(location);
         pay_itemRV.setLayoutManager(new LinearLayoutManager(requireContext()));
         bookScheduleAdapter = new BookScheduleAdapter(bookScheduleItemsList, getContext());
         pay_itemRV.setAdapter(bookScheduleAdapter);
 
-        getUsername(uid, new OnUsernameFetchedListener() {
-            @Override
-            public void onUsernameFetched(String username) {
-                if (username != null) {
-                    pay_usernameTV.setText(username);
-                    Log.d("Payment", "Username: " + username);
-                }
-            }
-        });
 
-//        Log.d("Payment", "usn" + getUsername(uid));
         Log.d("uid", "uid" + uid);
+
         pay_subtotalTV.setText(Double.toString(servicePrice));
         pay_totalTV.setText(Double.toString(servicePrice));
 
@@ -149,27 +133,22 @@ public class PaymentFragment extends Fragment {
         pay_orderBtn.setOnClickListener(v -> {
             String userId = auth.getCurrentUser().getUid();
             String username = pay_usernameTV.getText().toString();
-
             counterRef.get().addOnCompleteListener(orderCounter -> {
                 if(orderCounter.isSuccessful()){
 
                     Integer order = orderCounter.getResult().getValue(Integer.class);
-
                     if(order == null){
                         order = 1;
                     }
                     int orderCount = order + 1;
                     String orderId = "O" + String.format("%03d",orderCount);
-                    Order newOrder = new Order(orderId, userId, username, serviceName, selectedDate,selectedTime, servicePrice, "Pending", BAid, BAName);
+                    Order newOrder = new Order(orderId, userId, username, serviceName, selectedDate,selectedTime, servicePrice, "Pending", BAid, BAName, location);
                     db.collection("orders")
                             .document(orderId)
                             .set(newOrder)
                             .addOnSuccessListener(aVoid -> {
-
-                                counterRef.setValue(orderCount); // ✅ sekarang tidak merah
-
+                                counterRef.setValue(orderCount);
                                 Toast.makeText(getContext(), "Order submitted successfully", Toast.LENGTH_SHORT).show();
-
                                 passOrderToServiceProvider(orderId, BAid, BAName);
 
                                 goToOrderSuccess();
@@ -204,46 +183,12 @@ public class PaymentFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e("PaymentFragment", "Failed to pass order to service provider", e);
                 });
-    }
+        NotificationHelper.saveNotificationToFirestore(BAid,"BA", "New Order", "new order received", "new_order", orderId);
 
+    }
 
     public void goToOrderSuccess() {
-        OrderSuccessPaymentFragment orderSuccessFragment = new OrderSuccessPaymentFragment();
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.paymentLayout, orderSuccessFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-
-    private String formatDate(String selectedDate) {
-        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault());
-        try {
-            Date date = inputFormat.parse(selectedDate);
-            return outputFormat.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return selectedDate;
-    }
-
-    private void getUsername(String userId, final OnUsernameFetchedListener listener){
-        db.collection("users").document(userId).get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            String username = document.getString("username");
-                            listener.onUsernameFetched(username);
-                        } else {
-                            Log.d("AppointmentFragment", "Document does not exist.");
-                            listener.onUsernameFetched(null);
-                        }
-                    } else {
-                        Log.e("AppointmentFragment", "Error fetching username: " + task.getException());
-                        listener.onUsernameFetched(null);
-                    }
-                });
+        ((MainActivity) requireActivity()).openFragment(new OrderSuccessPaymentFragment(), true);
     }
 
     public interface OnUsernameFetchedListener {

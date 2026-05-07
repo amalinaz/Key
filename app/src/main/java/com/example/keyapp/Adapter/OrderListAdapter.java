@@ -39,7 +39,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public void onBindViewHolder(@NonNull OrderListAdapter.OrderListViewHolder holder, int position) {
         Order order = orderList.get(position);
 
-        if(order.getStatus().equals("Confirmed") || order.getStatus().equals("Rejected")){
+        if(order.getStatus().equals("Confirmed") || order.getStatus().equals("Rejected") || order.getStatus().equals("Completed")){
             holder.order_confirmBtn.setVisibility(View.GONE);
             holder.order_rejectBtn.setVisibility(View.GONE);
         }else{
@@ -51,7 +51,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         holder.order_dateTime.setText(order.getSelectedDate() + " - "+ order.getSelectedTime());
         holder.order_serviceName.setText(order.getServiceName());
         holder.order_custName.setText(order.getUsername());
-        holder.order_location.setText(" ");
+        holder.order_location.setText(order.getLocation());
         holder.order_status.setText(order.getStatus());
 
         holder.order_confirmBtn.setOnClickListener(v -> {

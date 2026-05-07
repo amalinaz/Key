@@ -1,9 +1,10 @@
-package com.example.keyapp;
+package com.example.keyapp.Register;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -17,9 +18,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.keyapp.LoginActivity;
+import com.example.keyapp.MainActivity;
 import com.example.keyapp.Models.User;
+import com.example.keyapp.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -29,64 +34,65 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterBAActivity extends AppCompatActivity {
 
-    ImageButton reg_backbtn, reg_signInBtn2, reg_signUpBtn, reg_signUpBtn2;
-    EditText reg_email, reg_username, reg_pass;
-    TextView reg_BAregBtn;
+    ImageButton regBA_backbtn, regBA_signInBtn2, regBA_signUpBtn, regBA_signUpBtn2;
+    EditText regBA_email, regBA_username, regBA_pass;
+    TextView regBA_regUserBtn;
+    TextInputLayout BA_passTIL, BA_usernameTIL, BA_emailTIL;
 
     FirebaseDatabase database;
     DatabaseReference refDatabase, counterRef;
     FirebaseAuth mAuth;
     FirebaseFirestore db;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_register);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        setContentView(R.layout.activity_register_baactivity);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.registBA), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
 
-        reg_backbtn = findViewById(R.id.reg_backbtn);
-        reg_signInBtn2 = findViewById(R.id.reg_signInBtn2);
-        reg_signUpBtn2 = findViewById(R.id.reg_signUpBtn2);
-        reg_signUpBtn = findViewById(R.id.reg_signUpBtn);
+        regBA_backbtn = findViewById(R.id.regBA_backbtn);
+        regBA_signInBtn2 = findViewById(R.id.regBA_signInBtn2);
+        regBA_signUpBtn2 = findViewById(R.id.regBA_signUpBtn2);
+        regBA_signUpBtn = findViewById(R.id.regBA_signUpBtn);
 
-        reg_email = findViewById(R.id.reg_email);
-        reg_pass = findViewById(R.id.reg_pass);
-        reg_username = findViewById(R.id.reg_username);
+        regBA_email = findViewById(R.id.regBA_email);
+        regBA_pass = findViewById(R.id.regBA_pass);
+        regBA_username = findViewById(R.id.regBA_username);
 
-        reg_BAregBtn = findViewById(R.id.reg_BAregbtn);
+        BA_usernameTIL = findViewById(R.id.BA_usernameTIL);
+        BA_emailTIL = findViewById(R.id.BA_emailTIL);
+        BA_passTIL = findViewById(R.id.BA_passTIL);
 
-        db = FirebaseFirestore.getInstance();
+        regBA_regUserBtn = findViewById(R.id.regBA_regUserbtn);
 
-
-        reg_backbtn.setOnClickListener(new View.OnClickListener() {
+        regBA_backbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                Intent intent = new Intent(RegisterBAActivity.this, RegisterActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
 
-        reg_signInBtn2.setOnClickListener(new View.OnClickListener(){
+        regBA_signInBtn2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                Intent intent = new Intent(RegisterBAActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
 
-        reg_signUpBtn.setOnClickListener(new View.OnClickListener() {
+
+        regBA_signUpBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mAuth = FirebaseAuth.getInstance();
@@ -94,21 +100,31 @@ public class RegisterActivity extends AppCompatActivity {
                 refDatabase = database.getReference("users");
                 counterRef = database.getReference("userCounter");
 
-                String username = String.valueOf(reg_username.getText());
-                String email = String.valueOf(reg_email.getText());
-                String pass = String.valueOf(reg_pass.getText());
+                String username = String.valueOf(regBA_username.getText());
+                String email = String.valueOf(regBA_email.getText());
+                String pass = String.valueOf(regBA_pass.getText());
 
-                if(TextUtils.isEmpty(username)){
-                    Toast.makeText(RegisterActivity.this, "Enter Username", Toast.LENGTH_SHORT).show();
-                    return;
+                if(TextUtils.isEmpty(username) || username.length() < 3 || username.length() > 15){
+                    BA_usernameTIL.setError("Username must be 3–15 characters");
+                } else {
+                    BA_usernameTIL.setError(null);
                 }
                 if(TextUtils.isEmpty(email)){
-                    Toast.makeText(RegisterActivity.this, "Enter Email", Toast.LENGTH_SHORT).show();
-                    return;
+                    BA_emailTIL.setError("Email cannot be empty");
+                } else if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+                    BA_emailTIL.setError("Enter a valid email address");
+                } else {
+                    BA_emailTIL.setError(null);
                 }
-                if(TextUtils.isEmpty(pass)){
-                    Toast.makeText(RegisterActivity.this, "Enter Password", Toast.LENGTH_SHORT).show();
+                String pattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$";
+                if(pass.length() < 8){
+                    BA_passTIL.setError("Password must be at least 8 characters");
                     return;
+                }else if(!pass.matches(pattern)){
+                    BA_passTIL.setError("Password must contain letters and numbers only");
+                    return;
+                }else {
+                    BA_passTIL.setError(null);
                 }
 
 
@@ -129,44 +145,41 @@ public class RegisterActivity extends AppCompatActivity {
                                     String userId = "U" + String.format("%03d", userCounter+1);
                                     String uid = mAuth.getCurrentUser().getUid();
                                     String hashedPassword = hashPassword(pass);
-                                    User newUser = new User(userId, username, email, hashedPassword, 1, null);
+                                    User newUser = new User(userId, username, email, hashedPassword, 2 , null);
                                     counterRef.setValue(userCounter + 1);
 
                                     saveUserDataToFirestore(uid, newUser);
                                     refDatabase.child(uid).child("userId").setValue(userId);
 
                                 } else {
-                                    Toast.makeText(RegisterActivity.this, "Error fetching counter", Toast.LENGTH_SHORT).show();
-                                    Log.e("Firebase", "Error fetching userCounter", taskcounter.getException());
+                                    Toast.makeText(RegisterBAActivity.this, "Error fetching counter", Toast.LENGTH_SHORT).show();
+
                                 }
                             });
 
                         }else{
-                            Log.e("Registration Error", "Error: " + task.getException().getMessage());
-                            Toast.makeText(RegisterActivity.this, "Registration failed" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterBAActivity.this, "Registration failed" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
 
 
                 });
 
+                regBA_regUserBtn.setOnClickListener(views -> {
+                    try {
+                        Intent intent = new Intent(RegisterBAActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }catch (Exception e){
+                        Toast.makeText(RegisterBAActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                    }
+
+                });
+
+
             }
         });
-
-        reg_BAregBtn.setOnClickListener(view -> {
-            try {
-                Intent intent = new Intent(RegisterActivity.this, RegisterBAActivity.class);
-                startActivity(intent);
-                finish();
-            }catch (Exception e){
-                Log.e("RegisterError", "Error: " + e.getMessage());
-                Toast.makeText(RegisterActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
-
     }
-
-
 
     public static String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
@@ -174,18 +187,18 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     private void saveUserDataToFirestore(String uid, User user) {
+        db = FirebaseFirestore.getInstance();
         db.collection("users").document(uid)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(RegisterActivity.this, "User data saved to Firestore", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    Toast.makeText(RegisterBAActivity.this, "User data saved to Firestore", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.putExtra("showCompleteProfilePopup", true);
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(RegisterActivity.this, "Failed to save user data", Toast.LENGTH_SHORT).show();
-                    Log.e("FirestoreError", "Error saving user: ", e);
+                    Toast.makeText(RegisterBAActivity.this, "Failed to save user data", Toast.LENGTH_SHORT).show();
                 });
     }
-
-
 }

@@ -35,6 +35,7 @@
     <string name="MUA">Makeup</string>
     <string name="NailArt">Nail Art</string>
     <string name="Eyelash">Eyelash</string>
+    <string name="notificaion">Notification</string>
 
     <string name="Recomendasi">Recommendation</string>
 
@@ -46,6 +47,8 @@
     <string name="history">History</string>
     <string name="manageSchedule">Manage Schedule</string>
     <string name="orderlist">Order List</string>
+
+    <string name="Filter">Filter</string>
 
     <string name="upcoming">Upcoming Schedule</string>
     <string name="Waiting">Waiting for Confirmation</string>
@@ -64,7 +67,7 @@
     <string name="SelectCategory">Select Service Category</string>
     <string-array name="service_categories">
         <item>Select Service Category</item>
-        <item>Make Up</item>
+        <item>Makeup</item>
         <item>Nail Art</item>
         <item>Eyelash</item>
     </string-array>
@@ -73,6 +76,13 @@
     <string name="ServiceImage">Image</string>
     <string name="AddImage">Add Image</string>
     <string name="AddTime">Available Time</string>
+
+    <string name="EstTime">Estimated Time (minutes)</string>
+    <string name="AddEstTime">Add Estimated Time in minutes</string>
+
+
+    <string name="ForgotPass">Forgot Password</string>
+    <string name="SendResetEmail">Send Reset Email </string>
 
 
     <!--    profile-->
@@ -102,7 +112,10 @@
     </string-array>
 
     <string name="setTime">Set Time</string>
+    <string name="setSchedule">Set Schedule</string>
     <string name="save">Save</string>
+
+    <string name="returnHome">Return to Home</string>
 
     <string name="PhoneNumber">Phone Number</string>
     <string name="addPhone">Add Phone Number</string>
@@ -110,8 +123,12 @@
 
     <string name="viewAll">View All</string>
     <string name="Review">Review</string>
+    <string name="AddReview">Add Review</string>
     <string name="Pricelist">Pricelist</string>
     <string name="Appointment">Book Appointment</string>
+
+    <string name="Experience">Experience (years)</string>
+    <string name="ExperienceHint">Enter number of years </string>
 
     <string name="locationtype">Service Location Type</string>
     <string-array name="loctype">
@@ -122,5 +139,21 @@
     <string name="confirm">Confirm</string>
     <string name="Reject">Reject</string>
     <string name="viewDetail">View Detail</string>
-    <string name="YOUR_MAP_API_KEY">AIzaSyD6UjVeIyqdZjo-4LjzBDgEj6FA3ddMiy4</string>
+    <string name="All">All</string>
+    <string name="Confirmed">Confirmed</string>
+    <string name="Rejected">Rejected</string>
+    <string name="Pending">Pending</string>
+    <string name="Reschedule">Reschedule</string>
+    <string name="Complete">Complete</string>
+
+    <string name="AddReviewh1">How was your experience?</string>
+    <string name="AddReviewh2">Tell us about your experience with your Beauty Assistant</string>
+    <string name="AddReviewhint">Write your review here…</string>
+    <string name="YOUR_MAP_API_KEY">AIzaSyDw-biV15mc5jiTnd0wqIQI41xRoL79TPA</string>
+    <string name="orderlistdetail">Order List Detail</string>
+
+    <string name="servicepricemin">Rp. 0</string>
+    <string name="servicepricemax">Rp. 5000000</string>
+
+
 </resources>

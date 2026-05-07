@@ -39,10 +39,8 @@ public class EditServiceFragment extends Fragment {
 
     private String uid, serviceID;
     private List<Daytime> daytimeList;
-
     Spinner categorySpinner;
     List<String> categoryService;
-
 
     EditText edit_ServiceName, edit_ServicePrice, edit_ServiceDesc, edit_EstTime;
     Button edit_ServiceImg, edit_SaveBtn;
@@ -63,8 +61,7 @@ public class EditServiceFragment extends Fragment {
     private String getFileNameFromUrl(String url) {
         try {
             Uri uri = Uri.parse(url);
-            String lastPath = uri.getLastPathSegment(); // images%2Fphoto_ayam.png
-
+            String lastPath = uri.getLastPathSegment();
             if (lastPath != null && lastPath.contains("%2F")) {
                 return lastPath.substring(lastPath.lastIndexOf("%2F") + 3);
             }
@@ -197,7 +194,7 @@ public class EditServiceFragment extends Fragment {
 
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("services").document(service.getId())
+        db.collection("service").document(service.getId())
                 .set(service)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Service updated", Toast.LENGTH_SHORT).show();

@@ -51,8 +51,7 @@ public class PortofolioAdapter extends RecyclerView.Adapter<PortofolioAdapter.Po
                 return true;
             });
         } else {
-            // Role A tidak bisa long click
-            holder.itemView.setOnLongClickListener(null); // Hapus long click listener untuk Role A
+            holder.itemView.setOnLongClickListener(null);
         }
 
 

@@ -2,68 +2,128 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/orderListLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".OrderListFragment">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:layout_height="wrap_content">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/constraintLayout2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            <ImageButton
+                android:id="@+id/oldetail_backBtn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="24dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Back Button"
+                android:scaleType="fitCenter"
+                android:src="@drawable/arrow_h"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageButton
-                    android:id="@+id/ol_backBtn"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="24dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Back Button"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/arrow_h"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/porto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="72dp"
+                android:layout_marginTop="32dp"
+                android:fontFamily="@font/alegreyasans_bold"
+                android:text="@string/orderlist"
+                android:textSize="24sp"
+                app:layout_constraintStart_toEndOf="@+id/oldetail_backBtn"
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/porto"
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/ol_chipGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/ol_allChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="72dp"
-                    android:layout_marginTop="32dp"
-                    android:fontFamily="@font/alegreyasans_bold"
-                    android:text="@string/orderlist"
-                    android:textSize="24sp"
-                    app:layout_constraintStart_toEndOf="@+id/ol_backBtn"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    android:checked="true"
+                    android:text="@string/All"
+                    android:textColor="@color/chip_text_selector"
+                    app:chipBackgroundColor="@color/chip_bg_selector" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/ol_pendingChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/Pending"
+                    android:textColor="@color/chip_text_selector"
+                    app:chipBackgroundColor="@color/chip_bg_selector" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/ol_confirmChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/Confirmed"
+                    android:textColor="@color/chip_text_selector"
+                    app:chipBackgroundColor="@color/chip_bg_selector" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/ol_rejectedChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/Rejected"
+                    android:textColor="@color/chip_text_selector"
+                    app:chipBackgroundColor="@color/chip_bg_selector" />
+
+            </com.google.android.material.chip.ChipGroup>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/ol_orderListRV"
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="8dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_height="match_parent">
 
-        </LinearLayout>
-    </ScrollView>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/ol_orderListRV"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginEnd="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
 </FrameLayout>

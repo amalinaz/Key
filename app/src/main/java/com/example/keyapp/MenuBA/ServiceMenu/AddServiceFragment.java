@@ -142,7 +142,8 @@ public class AddServiceFragment extends Fragment {
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
-                // Tindakan ketika tidak ada item yang dipilih
+                Toast.makeText(getContext(), "Please select a category", Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -158,8 +159,6 @@ public class AddServiceFragment extends Fragment {
                                 String fileName = getFileName(imageUri);
                                 addImageNameChip.setText(fileName);
                                 addImageNameChip.setVisibility(View.VISIBLE);
-
-
                             }
                         }else{
 
@@ -258,16 +257,12 @@ public class AddServiceFragment extends Fragment {
                             if (serviceCounter == null) {
                                 serviceCounter = 1;
                                 counterRef.setValue(serviceCounter);
-                                Log.d("Firebase", "Setting initial userCounter to 1");
                             }
-
 
                             serviceID = "S" + String.format("%03d", serviceCounter + 1);
                             Service service = new Service(serviceID, ServiceName, servicePrice, ServiceDesc, selectedCategory, imgUrl, userId, EstTime);
                             counterRef.setValue(serviceCounter+1);
-
                             saveToFirestore(serviceID, service);
-
 
                         }
 
@@ -293,7 +288,6 @@ public class AddServiceFragment extends Fragment {
             Intent intent = new Intent(requireActivity(), LoginActivity.class);
             startActivity(intent);
             requireActivity().finish();
-
         }
 
         uid = currentUser.getUid();
@@ -307,12 +301,10 @@ public class AddServiceFragment extends Fragment {
 
                         List<Daytime> daytimeList = new ArrayList<>();
 
-                        // Loop untuk memasukkan data ke dalam list
                         if (savedAvailableTimes != null) {
                             for (Map.Entry<String, Object> entry : savedAvailableTimes.entrySet()) {
                                 String day = entry.getKey();
 
-                                // Firestore biasanya return ArrayList<?> (bukan List<String> murni)
                                 List<?> timesForThisDay = (List<?>) entry.getValue();
                                 List<String> times = new ArrayList<>();
                                 if (timesForThisDay != null) {
@@ -324,8 +316,6 @@ public class AddServiceFragment extends Fragment {
                                 daytimeList.add(new Daytime(day, times));
                             }
                         }
-
-                        // Setup RecyclerView
                         add_daytimeRV.setLayoutManager(new LinearLayoutManager(getContext()));
                         DaytimeAdapter adapter = new DaytimeAdapter(daytimeList);
                         add_daytimeRV.setAdapter(adapter);  // Set adapter ke RecyclerView

@@ -4,20 +4,22 @@ public class BAprofile {
     String BAid;
     String BAname;
     double distance;
-    Float rating;
+    double rating;
     String photoUrl;
     long minPrice;
-
+    Double experience;
+    private double score;
     public BAprofile() {
 
     }
-    public BAprofile(String BAid, String BAname, String photoUrl, long minPrice, double distance) {
+    public BAprofile(String BAid, String BAname, String photoUrl, long minPrice, double distance, double rating, Double experience) {
         this.BAid = BAid;
         this.BAname = BAname;
         this.photoUrl = photoUrl;
         this.minPrice = minPrice;
         this.distance = distance;
-        this.rating = null;
+        this.rating = rating;
+        this.experience = experience;
     }
     public String getBAid() {
         return BAid;
@@ -49,4 +51,23 @@ public class BAprofile {
     public void setDistance(double distance) {
         this.distance = distance;
     }
+    public double getRating() {
+        return rating;
+    }
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+    public Double getExperience() {
+        return experience;
+    }
+    public void setExperience(Double experience) {
+        this.experience = experience;
+    }
+    public double getScore() {
+        return score;
+    }
+    public void setScore(double score) {
+        this.score = score;
+    }
+
 }

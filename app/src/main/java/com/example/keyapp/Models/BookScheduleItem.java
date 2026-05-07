@@ -1,6 +1,8 @@
 package com.example.keyapp.Models;
 
-public class BookScheduleItem {
+import java.io.Serializable;
+
+public class BookScheduleItem implements Serializable {
     private String BAname;
     private String serviceName;
     private String date;

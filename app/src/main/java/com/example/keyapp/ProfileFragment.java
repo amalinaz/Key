@@ -1,7 +1,6 @@
 package com.example.keyapp;
 
 import android.app.Activity;
-import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -26,12 +25,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -40,18 +36,16 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.keyapp.Adapter.TimeListAdapter;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -69,10 +63,11 @@ public class ProfileFragment extends Fragment {
     ImageButton profile_backBtn, profile_saveBtn;
     Button profile_logoutBtn;
     TextView locationTV;
-    EditText profile_username, profile_email, profile_phone, profile_location;
-    ConstraintLayout profile_locTypeCL, profile_locCL;
+    EditText profile_username, profile_email, profile_phone, profile_location, profile_experienceTV;
+    ConstraintLayout profile_locTypeCL, profile_locCL, profile_ExperienceCL;
     RadioGroup locTypeRG;
     Uri image;
+    TextInputLayout profile_usnTIL, profile_emailTIL, profile_locTIL, profile_phoneTIL, profile_expTIL;
 
     TimeListAdapter adapter;
     View line;
@@ -90,23 +85,33 @@ public class ProfileFragment extends Fragment {
         View rootview = inflater.inflate(R.layout.fragment_profile, container, false);
 
 
-        profile_backBtn = rootview.findViewById(R.id.profile_BackBtn);
+        profile_backBtn = rootview.findViewById(R.id.n_BackBtn);
         profile_saveBtn =  rootview.findViewById(R.id.profile_saveBtn);
         profile_logoutBtn = rootview.findViewById(R.id.profile_logoutBtn);
 
-        profile_username =  rootview.findViewById(R.id.profile_username);
+        profile_username =  rootview.findViewById(R.id.chat_textInputET);
         profile_email=  rootview.findViewById(R.id.profile_email);
         profile_phone =  rootview.findViewById(R.id.profile_phone);
         profile_location = rootview.findViewById(R.id.profile_location);
         locationTV = rootview.findViewById(R.id.locationTV);
 
         profile_changeProfile = rootview.findViewById(R.id.profile_changeProfile);
-        profile_imageIV = rootview.findViewById(R.id.profile_imageIV);
+        profile_imageIV = rootview.findViewById(R.id.icl_imageIV);
+
+        profile_ExperienceCL = rootview.findViewById(R.id.profile_experienceCL);
+        profile_experienceTV = rootview.findViewById(R.id.profile_experienceTV);
 
         profile_locTypeCL = rootview.findViewById(R.id.profile_locTypeCL);
         profile_locCL = rootview.findViewById(R.id.profile_locCL);
         locTypeRG = rootview.findViewById(R.id.profile_locTypeRG);
 
+        profile_usnTIL = rootview.findViewById(R.id.profile_usnTIL);
+        profile_emailTIL = rootview.findViewById(R.id.profile_emailTIL);
+        profile_locTIL = rootview.findViewById(R.id.profile_locTIL);
+        profile_phoneTIL = rootview.findViewById(R.id.profile_phoneTIL);
+        profile_expTIL = rootview.findViewById(R.id.profile_expTIL);
+
+        profile_ExperienceCL.setVisibility(View.GONE);
         profile_locTypeCL.setVisibility(View.GONE);
         profile_locCL.setVisibility(View.GONE);
 
@@ -115,6 +120,7 @@ public class ProfileFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance().getReference();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         return rootview;
     }
@@ -140,14 +146,13 @@ public class ProfileFragment extends Fragment {
             openGallery();
         }
 
+        checkAndRequestLocationPermission();
         uid = currentUser.getUid();
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         Long roleLong = doc.getLong("userlvl");
                         role = roleLong != null ? roleLong.intValue() : 1;
-
-                        Log.d("PROFILE_FIRESTORE", "Data: " + doc.getData());
 
                         Map<String, Object> location = (Map<String, Object>) doc.get("location");
                         String locationType = (String) doc.get("locationType");
@@ -167,6 +172,8 @@ public class ProfileFragment extends Fragment {
 
                             locationTV.setText(getString(R.string.ServiceLoc));
                             profile_location.setHint("Enter the location where customers can find or book your services");
+
+                            profile_ExperienceCL.setVisibility(View.VISIBLE);
                             profile_locTypeCL.setVisibility(View.VISIBLE);
                             profile_locCL.setVisibility(View.VISIBLE);
 
@@ -195,9 +202,10 @@ public class ProfileFragment extends Fragment {
 
                         String username = doc.getString("userName");
                         String email = doc.getString("email");
-
                         String phone = doc.getString("phone");
                         String imageUrl = doc.getString("profileImageUrl");
+                        Double Experience = doc.getDouble("experience");
+
                         if (imageUrl != null) {
                             Glide.with(requireContext())
                                     .load(imageUrl)
@@ -206,11 +214,11 @@ public class ProfileFragment extends Fragment {
                             profile_imageIV.setImageResource(R.drawable.profile_no);
                         }
 
-
                         if (username != null) profile_username.setText(username);
                         if (email != null) profile_email.setText(email);
                         if (loc != null) profile_location.setText(loc);
                         if (phone != null) profile_phone.setText(phone);
+                        if (Experience != null) profile_experienceTV.setText(String.valueOf(Experience));
 
                     }else{
                         Log.d("PROFILE_FIRESTORE", "Document not found for uid: " + uid);
@@ -235,7 +243,7 @@ public class ProfileFragment extends Fragment {
         });
 
         profile_backBtn.setOnClickListener(v -> {
-            getActivity().onBackPressed();
+            getParentFragmentManager().popBackStack();
         });
 
         profile_saveBtn.setOnClickListener(v -> {
@@ -245,7 +253,65 @@ public class ProfileFragment extends Fragment {
 
     }
 
+    private void checkAndRequestLocationPermission() {
+        if (!profile_location.getText().toString().trim().isEmpty()) {
+            return;
+        }
 
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            fillCurrentLocationToEditText();
+
+        } else {
+            requestPermissions(
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
+    private void fillCurrentLocationToEditText() {
+        if (ActivityCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+                        try {
+                            List<Address> addresses = geocoder.getFromLocation(
+                                    location.getLatitude(),
+                                    location.getLongitude(),
+                                    1
+                            );
+
+                            if (addresses != null && !addresses.isEmpty()) {
+                                profile_location.setText(addresses.get(0).getAddressLine(0));
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fillCurrentLocationToEditText();
+            }
+        }
+    }
     private void saveProfileToFirestore() {
         String newUsername = profile_username.getText().toString().trim();
         String newEmail = profile_email.getText().toString().trim();
@@ -263,6 +329,7 @@ public class ProfileFragment extends Fragment {
             uploadImage(image, uid1);
         }
 
+
         if(role == 2){
             int selectedId = locTypeRG.getCheckedRadioButtonId();
 
@@ -275,6 +342,8 @@ public class ProfileFragment extends Fragment {
             String selectedText = selectedRadio.getText().toString();
 
             String locationType;
+            String expStr = profile_experienceTV.getText().toString().trim();
+            Double experience = expStr.isEmpty() ? 0.0 : Double.valueOf(expStr);
 
             if (selectedText.equals("Customer visits my place")) {
                 locationType = "visit";
@@ -283,10 +352,18 @@ public class ProfileFragment extends Fragment {
             } else {
                 locationType = "unknown";
             }
-
+            if(experience < 0 || experience == null){
+                profile_expTIL.setError("Experience cannot be negative or null");
+                return;
+            } else if(experience > 50){
+                profile_expTIL.setError("Experience seems too high");
+                return;
+            } else {
+                profile_expTIL.setError(null);
+            }
+            updateUser.put("experience", experience);
             updateUser.put("locationType", locationType);
         }
-
 
 
         db.collection("users").document(uid1)
@@ -321,7 +398,7 @@ public class ProfileFragment extends Fragment {
     private void openGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
-        activityResultLauncher.launch(intent); // Launch the gallery
+        activityResultLauncher.launch(intent);
     }
     private void uploadImage(Uri file, String uid) {
         StorageReference ref = storage.child("images/" + UUID.randomUUID().toString());
@@ -353,8 +430,6 @@ public class ProfileFragment extends Fragment {
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-
-
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(location -> {
                         if (location != null) {
@@ -376,9 +451,7 @@ public class ProfileFragment extends Fragment {
                         if (!manualAddress.isEmpty()) {
                             geocodeManualAddressAndSave(manualAddress);
                         } else {
-                            Toast.makeText(getContext(),
-                                    "Gagal mendapatkan lokasi dan alamat kosong",
-                                    Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Alamat kosong", Toast.LENGTH_SHORT).show();
                         }
                     });
 
@@ -386,13 +459,7 @@ public class ProfileFragment extends Fragment {
             if (!manualAddress.isEmpty()) {
                 geocodeManualAddressAndSave(manualAddress);
             } else {
-                requestPermissions(
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        LOCATION_PERMISSION_REQUEST_CODE
-                );
-//                Toast.makeText(getContext(),
-//                        "Izinkan lokasi atau isi alamat dulu",
-//                        Toast.LENGTH_SHORT).show();
+
             }
         }
     }
@@ -412,7 +479,6 @@ public class ProfileFragment extends Fragment {
             saveLocationToFirestore(latitude, longitude, finalAddressText);
 
         } catch (IOException e) {
-            Log.e("Location", "Geocoder failed", e);
             saveLocationToFirestore(latitude, longitude, fallbackManualText);
         }
     }
@@ -433,7 +499,6 @@ public class ProfileFragment extends Fragment {
                 saveLocationToFirestore(null, null, manualAddress);
             }
         } catch (IOException e) {
-            Log.e("Geocoder", "Error getting address", e);
             saveLocationToFirestore(null, null, manualAddress);
         }
     }

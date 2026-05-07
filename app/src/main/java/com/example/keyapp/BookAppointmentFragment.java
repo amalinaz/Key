@@ -41,7 +41,6 @@ public class BookAppointmentFragment extends Fragment {
             BAid = getArguments().getString("BAid");
 
         }
-        Log.d("BookAp" , "id keambil:" + BAid);
         pricelistData();
         ba_viewRV.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new PricelistAdapter(pricelist, getContext(), v -> {
@@ -63,16 +62,9 @@ public class BookAppointmentFragment extends Fragment {
             bundle.putInt("SERVICE_ESTTIME", selectedService.getEstTime());
             bundle.putString("BAid", selectedService.getBAid());
 
-
             AppointmentFragment appointmentFragment = new AppointmentFragment();
             appointmentFragment.setArguments(bundle);
-
-
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.bookAppointmentLayout, appointmentFragment)
-                    .addToBackStack(null)
-                    .commit();
+            ((MainActivity) requireActivity()).openFragment(appointmentFragment, false);
         });
         ba_viewRV.setAdapter(adapter);
         ba_backBtn.setOnClickListener(v -> {
@@ -93,7 +85,6 @@ public class BookAppointmentFragment extends Fragment {
                             pricelist.add(service);
                         }
                     }
-                    Log.d("Pricelist", "Data fetched: " + pricelist.size() + " items");
                     adapter.notifyDataSetChanged();
                 }).addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Failed to load data", Toast.LENGTH_SHORT).show();

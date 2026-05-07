@@ -1,6 +1,8 @@
 package com.example.keyapp.Models;
 
-public class Order {
+import java.io.Serializable;
+
+public class Order implements Serializable {
     private String orderId;
     private String userId;
     private String username;
@@ -9,17 +11,15 @@ public class Order {
     private String selectedTime;
     private double servicePrice;
     private String status;
-
     private String BAid;
     private String BAName;
-
+    private String location;
     public Order() {
 
     }
 
-
     public Order(String orderId, String userId, String username, String serviceName, String selectedDate,
-                 String selectedTime, double servicePrice, String status, String BAid, String BAName) {
+                 String selectedTime, double servicePrice, String status, String BAid, String BAName, String location) {
         this.orderId = orderId;
         this.userId = userId;
         this.username = username;
@@ -30,9 +30,9 @@ public class Order {
         this.status = status;
         this.BAid = BAid;
         this.BAName = BAName;
+        this.location = location;
     }
 
-    // Getter dan Setter untuk setiap properti
     public String getUserId() {
         return userId;
     }
@@ -112,4 +112,13 @@ public class Order {
     public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
 }

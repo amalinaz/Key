@@ -45,7 +45,7 @@ public class ManageScheduleFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_manage_schedule, container, false);
         availableTimeLayout = rootView.findViewById(R.id.availableTimeLayout);
         ms_saveBtn = rootView.findViewById(R.id.ms_saveBtn);
-        ms_backBtn = rootView.findViewById(R.id.ol_backBtn);
+        ms_backBtn = rootView.findViewById(R.id.oldetail_backBtn);
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -96,11 +96,9 @@ public class ManageScheduleFragment extends Fragment {
                         (view, selectedHour, selectedMinute) -> {
                             String time = String.format("%02d:%02d", selectedHour, selectedMinute);
                             timesForThisDay.add(time);
-                            Log.d("TIME_DEBUG", "Day: " + day + ", times: " + timesForThisDay);
                             adapter.notifyDataSetChanged();
                             if (cb.isChecked()) {
-                                availableTimes.put(day, timesForThisDay); // Simpan waktu untuk hari tertentu
-                                Log.d("PROFILE_FIRESTORE", "time for this day + " + timesForThisDay );
+                                availableTimes.put(day, timesForThisDay);
                             }
                         },
                         hour,
@@ -174,9 +172,6 @@ public class ManageScheduleFragment extends Fragment {
             scheduleData.put("daysChecked", daysChecked);
             scheduleData.put("availableTimes", availableTimes);
 
-                Log.d("PROFILE_FIRESTORE", "bs input waktu");
-                Log.d("PROFILE_FIRESTORE", "waktu yg diinput : " + availableTimes);
-
                 if (!availableTimes.isEmpty()) {
                     db.collection("user_schedules").document(uid)
                             .set(scheduleData, SetOptions.merge())
@@ -184,17 +179,13 @@ public class ManageScheduleFragment extends Fragment {
                                 Toast.makeText(requireContext(),
                                         "Waktu berhasil disimpan",
                                         Toast.LENGTH_SHORT).show();
-                                Log.d("PROFILE_FIRESTORE", "waktu bs disimpen");
                             })
                             .addOnFailureListener(e -> {
                                 Toast.makeText(requireContext(),
                                         "Gagal menyimpan waktu",
                                         Toast.LENGTH_SHORT).show();
-                                Log.d("PROFILE_FIRESTORE", "waktu g bs disimpen");
                             });
                 }
-
-            Log.d("PROFILE_FIRESTORE", "bs save");
         });
 
 

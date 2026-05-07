@@ -59,7 +59,7 @@ public class ServiceFragment extends Fragment implements ServiceAdapter.OnItemCl
         auth = FirebaseAuth.getInstance();
 
         Service_BackBtn.setOnClickListener(v -> {
-            getActivity().onBackPressed();
+            getParentFragmentManager().popBackStack();
         });
 
         Service_AddBtn.setOnClickListener(v -> {
@@ -86,13 +86,11 @@ public class ServiceFragment extends Fragment implements ServiceAdapter.OnItemCl
 
         uid = currentUser.getUid();
         db.collection("service").get().addOnSuccessListener(queryDocumentSnapshots -> {
-            serviceList.clear();  // Clear list agar data lama tidak tercampur
+            serviceList.clear();
             for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
-                Service service = snapshot.toObject(Service.class);  // Map data ke objek Service
-
-                // Periksa apakah UID cocok dengan pengguna yang sedang login
+                Service service = snapshot.toObject(Service.class);
                 if (service != null && service.getBAid().equals(uid)) {
-                    serviceList.add(service);  // Tambahkan service ke list jika UID cocok
+                    serviceList.add(service);
                 }
             }
             serviceAdapter.notifyDataSetChanged();
@@ -115,27 +113,22 @@ public class ServiceFragment extends Fragment implements ServiceAdapter.OnItemCl
                 .replace(R.id.viewService, editServiceFragment)
                 .addToBackStack(null)
                 .commit();
-
-
     }
 
     @Override
     public void onDeleteClick(int position) {
         Service serviceToDelete = serviceList.get(position);
-        String serviceId = serviceToDelete.getId();  // Ambil serviceId dari objek Service
-        Log.d("Service Fragment", serviceId);
-        // Hapus data dari Firebase Firestore
+        String serviceId = serviceToDelete.getId();
+
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("service").document(serviceId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    // Data berhasil dihapus dari Firestore
-                    serviceList.remove(position);  // Hapus data dari list
-                    serviceAdapter.notifyItemRemoved(position);  // Update RecyclerView
+                    serviceList.remove(position);
+                    serviceAdapter.notifyItemRemoved(position);
                     Toast.makeText(requireContext(), "Item Deleted from Firebase", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    // Gagal menghapus data dari Firestore
                     Toast.makeText(requireContext(), "Failed to delete item from Firebase", Toast.LENGTH_SHORT).show();
                 });
     }

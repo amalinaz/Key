@@ -1,14 +1,15 @@
 package com.example.keyapp;
 
+import android.app.AlertDialog;
 import android.content.Intent;
-import android.location.Location;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -17,90 +18,24 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.keyapp.Adapter.ServiceRecAdapter;
-import com.example.keyapp.Models.BAprofile;
+import com.example.keyapp.Chat.ViewChatListFragment;
+import com.example.keyapp.Schedule.ScheduleFragment;
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.messaging.FirebaseMessaging;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements ServiceRecAdapter.OnItemCLickListener{
+public class MainActivity extends AppCompatActivity{
 
-    ImageView main_profile;
-    ImageButton MUABtn, NABtn, EyelashBtn;
-    TextView recommendTV;
-    ProgressBar pb;
     FirebaseAuth auth;
     FirebaseFirestore db;
-    private ServiceRecAdapter srAdapter;
-    RecyclerView srRV;
-    List<BAprofile> BAlist = new ArrayList<>();
-    private String selectedCategory = "";
-    private double latUser, lonUser;
-
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (currentUser == null) {
-
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
-
-        String uid = currentUser.getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        db.collection("users").document(uid)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        Map<String, Object> location = (Map<String, Object>) doc.get("location");
-
-                        if (location != null) {
-                            latUser = (double) location.get("latitude");
-                            lonUser = (double) location.get("longitude");
-
-                            Log.d("LOC", "Lat: " + latUser);
-                            Log.d("LOC", "Lng: " + latUser);
-
-                        }
-                        Long roleLong = doc.getLong("userlvl");
-                        int role = roleLong != null ? roleLong.intValue() : 1;
-
-                        if (role == 2) {
-                            Intent i = new Intent(MainActivity.this, MainActivity2.class);
-                            startActivity(i);
-                            finish();
-                        } else {
-                            Log.d("MAIN", "Role 1, stay in MainActivity");
-                        }
-                    } else {
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    finish();
-                });
-    }
+    private BottomAppBar bottomAppBar;
+    private BottomNavigationView navView;
+    private int currentrole;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,166 +48,182 @@ public class MainActivity extends AppCompatActivity implements ServiceRecAdapter
             return insets;
         });
 
-        main_profile = findViewById(R.id.main_profileIV);
-        MUABtn = findViewById(R.id.MUAbtn);
-        NABtn = findViewById(R.id.NABtn);
-        EyelashBtn = findViewById(R.id.EyelashBtn);
-
-        recommendTV = findViewById(R.id.recommendTV);
-        pb = findViewById(R.id.progressBar);
-
-
-        auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
-            main_profile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                    finish();
-                }
-            });
-        } else {
-            main_profile.setOnClickListener(v -> {
-                showProfile();
-            });
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        if(prefs.getBoolean("isFirstLaunch", true)){
+            startActivity(new Intent(this, IntroActivity.class));
+            finish();
+            return;
         }
 
+        boolean showPopup = getIntent().getBooleanExtra("showCompleteProfilePopup", false);
+        if(showPopup){
+            showCompleteProfileDialog();
+        }
+        
+        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        srRV = findViewById(R.id.main_ServiceRV);
+        FirebaseUser currentUser = auth.getCurrentUser();
 
-        srAdapter = new ServiceRecAdapter(BAlist, this);
-        srAdapter.setOnItemClickListener(this);
-        srRV.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        );
-        srRV.setAdapter(srAdapter);
-        recommendTV.setVisibility(View.GONE);
-        srRV.setVisibility(View.GONE);
-        pb.setVisibility(View.GONE);
+        if (currentUser == null) {
+
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);
+        }
 
 
-        MUABtn.setOnClickListener(v -> {
-            selectedCategory = "Make Up Artist";
-            pb.setVisibility(View.VISIBLE);
-            recommendTV.setVisibility(View.VISIBLE);
-            srRV.setVisibility(View.VISIBLE);
-            fetchBAProfiles("Make Up");
-        });
-        NABtn.setOnClickListener(v -> {
-            selectedCategory = "Nail Artist";
-            pb.setVisibility(View.VISIBLE);
-            recommendTV.setVisibility(View.VISIBLE);
-            srRV.setVisibility(View.VISIBLE);
+        String uid = currentUser.getUid();
 
-            fetchBAProfiles("Nail Art");
-        });
-        EyelashBtn.setOnClickListener(v -> {
-            selectedCategory = "Eyelash Artist";
-            pb.setVisibility(View.VISIBLE);
-            recommendTV.setVisibility(View.VISIBLE);
-            srRV.setVisibility(View.VISIBLE);
-
-            fetchBAProfiles("Eyelash");
-        });
-
-    }
-
-    private void showProfile() {
-        Fragment profileFragment = new ProfileFragment();
-        FrameLayout main = findViewById(R.id.main);
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(main.getId(), profileFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-    private void fetchBAProfiles(String category) {
-        BAlist.clear();
-        srAdapter.notifyDataSetChanged();
-
-        db.collection("users")
-                .whereEqualTo("userlvl", 2)
+        db.collection("users").document(uid)
                 .get()
-                .addOnSuccessListener(userQuery -> {
-
-                    for (DocumentSnapshot userDoc : userQuery) {
-
-                        String baId = userDoc.getId();
-                        String name = userDoc.getString("userName");
-                        String photo = userDoc.getString("profileImageUrl");
-                        long minPrice = userDoc.contains("minPrice")
-                                ? userDoc.getLong("minPrice")
-                                : 0;
-
-                        Map<String, Object> location =
-                                (Map<String, Object>) userDoc.get("location");
-
-
-                        Double latitude = userDoc.getDouble("location.latitude");
-                        Double longitude = userDoc.getDouble("location.longitude");
-
-                        if (latitude == null || longitude == null) {
-                            continue;
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Bundle bundle = new Bundle();
+                        Long roleLong = doc.getLong("userlvl");
+                        int role = roleLong != null ? roleLong.intValue() : 1;
+                        currentrole = role;
+                        if (role == 2) {
+                            bundle.putInt("role", currentrole);
+                            Home2Fragment home2Fragment = new Home2Fragment();
+                            home2Fragment.setArguments(bundle);
+                            openFragment(home2Fragment, true);
+                        } else if(role == 1) {
+                            bundle.putInt("role", currentrole);
+                            Home1Fragment home1Fragment = new Home1Fragment();
+                            openFragment(home1Fragment,true);
                         }
-
-                        float[] results = new float[1];
-
-                        Location.distanceBetween(
-                                latUser,
-                                lonUser,
-                                latitude,
-                                longitude,
-                                results
-                        );
-
-                        double jarakKm = results[0] / 1000;
-
-                        db.collection("service")
-                                .whereEqualTo("baid", baId)
-                                .whereEqualTo("serviceCategory", category)
-                                .limit(1)
-                                .get()
-                                .addOnSuccessListener(serviceQuery -> {
-
-                                    if (!serviceQuery.isEmpty()) {
-
-                                        BAprofile item = new BAprofile(
-                                                baId,
-                                                name,
-                                                photo,
-                                                minPrice,
-                                                jarakKm
-                                        );
-
-                                        BAlist.add(item);
-                                        srAdapter.notifyDataSetChanged();
-                                        pb.setVisibility(View.GONE);
-                                        srRV.setVisibility(View.VISIBLE);
-
-                                    }
-                                });
+                    } else {
+                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                    finish();
                 });
+
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        navView = findViewById(R.id.navview);
+        int homeId = getResources().getIdentifier("home", "id", getPackageName());
+        int scheduleId = getResources().getIdentifier("schedule", "id", getPackageName());
+        int searchId = getResources().getIdentifier("search", "id", getPackageName());
+        int chatId = getResources().getIdentifier("chat", "id", getPackageName());
+        int profileId = getResources().getIdentifier("user", "id", getPackageName());
+
+        navView.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            Bundle bundle = new Bundle();
+            bundle.putInt("role", currentrole);
+            int itemId = item.getItemId();
+
+            if (itemId == homeId) {
+                if(currentrole == 1){
+                    selectedFragment = new Home1Fragment();
+                }else if(currentrole == 2){
+                    selectedFragment =  new Home2Fragment();
+                }
+            } else if (itemId == scheduleId) {
+                ScheduleFragment scheduleFragment = new ScheduleFragment();
+                scheduleFragment.setArguments(bundle);
+                selectedFragment = scheduleFragment;
+            }else if (itemId == searchId){
+                SearchFragment searchFragment = new SearchFragment();
+                searchFragment.setArguments(bundle);
+                selectedFragment = searchFragment;
+            }else if (itemId == chatId){
+                selectedFragment = new ViewChatListFragment();
+            }else if (itemId == profileId){
+                selectedFragment = new ProfileFragment();
+            }
+            if (selectedFragment != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, selectedFragment)
+                        .commit();
+            }
+
+            return true;
+        });
+
+        saveFcmToken();
     }
 
-    @Override
-    public void getServiceDetail(int position) {
-        BAprofile selectedBA = BAlist.get(position);
+    private void showCompleteProfileDialog() {
+        AlertDialog dialog = new AlertDialog.Builder(this).create();
+        View view = getLayoutInflater().inflate(R.layout.layout_alert_dialog, null);
+        dialog.setView(view);
+        if(dialog.getWindow() != null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        dialog.setCancelable(false);
 
-        Bundle bundle = new Bundle();
-        bundle.putString("baId", selectedBA.getBAid());
-        bundle.putString("serviceName", selectedBA.getBAname());
-        bundle.putString("servicePhoto", selectedBA.getPhotoUrl());
-        bundle.putLong("minPrice", selectedBA.getMinPrice());
-        bundle.putString("selectedCategory", selectedCategory);
-        bundle.putDouble("distance", selectedBA.getDistance());
+        TextView titleTV = view.findViewById(R.id.dialog_title);
+        TextView messageTV = view.findViewById(R.id.dialog_message);
+        Button laterBtn = view.findViewById(R.id.dialog_btnA);
+        Button completeBtn = view.findViewById(R.id.dialog_btnB);
 
-        ServiceDetailFragment serviceDetailFragment = new ServiceDetailFragment();
-        serviceDetailFragment.setArguments(bundle);
-        FrameLayout main = findViewById(R.id.main);
+        titleTV.setText("Complete Your Profile");
+        messageTV.setText("To get the best experience, please complete your profile.");
+        laterBtn.setText("Later");
+        completeBtn.setText("Complete Profile");
+
+        completeBtn.setOnClickListener(v -> {
+            loadProfileFragment();
+            dialog.dismiss();
+        });
+
+        laterBtn.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    private void loadProfileFragment(){
         getSupportFragmentManager().beginTransaction()
-                .replace(main.getId(), serviceDetailFragment)
+                .replace(R.id.fragment_container, new ProfileFragment())
+                .commit();
+    }
+
+    public void showBottomBar() {
+        bottomAppBar.setVisibility(View.VISIBLE);
+        navView.setVisibility(View.VISIBLE);
+    }
+
+    public void hideBottomBar() {
+        bottomAppBar.setVisibility(View.GONE);
+        navView.setVisibility(View.GONE);
+    }
+
+    public void openFragment(Fragment fragment, boolean showBar) {
+        if (showBar) {
+            showBottomBar();
+        } else {
+            hideBottomBar();
+        }
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
+    }
+    private void saveFcmToken() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            return;
+        }
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                    FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(uid)
+                            .update("fcmToken", token);
+                   Log.d("fcm", "token : "+token);
+                });
     }
 }

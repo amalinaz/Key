@@ -21,7 +21,7 @@
             android:layout_height="100dp">
 
             <ImageButton
-                android:id="@+id/ol_backBtn"
+                android:id="@+id/oldetail_backBtn"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginStart="24dp"
@@ -42,7 +42,7 @@
                 android:fontFamily="@font/alegreyasans_bold"
                 android:text="@string/portofolio"
                 android:textSize="24sp"
-                app:layout_constraintStart_toEndOf="@+id/ol_backBtn"
+                app:layout_constraintStart_toEndOf="@+id/oldetail_backBtn"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

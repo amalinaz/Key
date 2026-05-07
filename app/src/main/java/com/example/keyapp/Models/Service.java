@@ -4,14 +4,14 @@ import java.io.Serializable;
 import java.sql.Time;
 import java.util.List;
 
-public class Service implements Serializable {
+public class  Service implements Serializable {
     private String id;
     private String ServiceName;
     private long ServicePrice;
     private String ServiceDesc;
     private String ServiceCategory;
     private String imgUrl;
-    private String BAid; // beauty assistant id
+    private String BAid;
     private int estTime;
 
 
