@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity{
 
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         if(prefs.getBoolean("isFirstLaunch", true)){
-            startActivity(new Intent(this, IntroActivity.class));
+            startActivity(new Intent(this, GetStartedActivity.class));
             finish();
             return;
         }
