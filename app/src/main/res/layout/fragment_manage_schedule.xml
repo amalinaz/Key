@@ -21,7 +21,7 @@
                 android:layout_height="100dp">
 
                 <ImageButton
-                    android:id="@+id/oldetail_backBtn"
+                    android:id="@+id/ms_backBtn"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:layout_marginStart="24dp"
@@ -37,12 +37,35 @@
                     android:id="@+id/porto"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="44dp"
+                    android:layout_marginStart="36dp"
                     android:layout_marginTop="32dp"
                     android:fontFamily="@font/alegreyasans_bold"
                     android:text="@string/manageSchedule"
                     android:textSize="24sp"
-                    app:layout_constraintStart_toEndOf="@+id/oldetail_backBtn"
+                    app:layout_constraintStart_toEndOf="@+id/ms_backBtn"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/ms_infoBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="36dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_info"
+                    app:layout_constraintStart_toEndOf="@+id/porto"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/ms_saveBtn"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginEnd="28dp"
+                    android:background="@android:color/transparent"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/check_big"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -55,22 +78,6 @@
 
             </LinearLayout>
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <Button
-                    android:id="@+id/ms_saveBtn"
-                    android:layout_width="150dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:backgroundTint="@color/primary"
-                    android:text="@string/setTime"
-                    android:textColor="@color/text"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
     </ScrollView>
