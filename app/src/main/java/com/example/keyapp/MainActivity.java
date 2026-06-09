@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity{
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         Bundle bundle = new Bundle();
-                        Long roleLong = doc.getLong("userlvl");
+                        Long roleLong = doc.getLong("userRole");
                         int role = roleLong != null ? roleLong.intValue() : 1;
                         currentrole = role;
                         if (role == 2) {

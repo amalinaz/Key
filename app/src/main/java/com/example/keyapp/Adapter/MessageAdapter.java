@@ -72,7 +72,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             if(message.isRead()){
                 ((SenderMessageViewHolder) holder).readTV.setText("Read");
             }else{
-                ((SenderMessageViewHolder) holder).readTV.setText("Read");
+                ((SenderMessageViewHolder) holder).readTV.setText("Unread");
             }
         } else if (holder instanceof ReceiverMessageViewHolder) {
             ((ReceiverMessageViewHolder) holder).messageTV.setText(message.getMessage());

@@ -7,6 +7,9 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,13 +24,14 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.example.keyapp.Models.Daytime;
+import com.example.keyapp.Helper.CurrencyHelper;
 import com.example.keyapp.R;
 import com.example.keyapp.Models.Service;
 import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -38,14 +42,12 @@ public class EditServiceFragment extends Fragment {
 
 
     private String uid, serviceID;
-    private List<Daytime> daytimeList;
     Spinner categorySpinner;
     List<String> categoryService;
 
     EditText edit_ServiceName, edit_ServicePrice, edit_ServiceDesc, edit_EstTime;
     Button edit_ServiceImg, edit_SaveBtn;
     ImageButton edit_backBtn;
-    RecyclerView edit_daytimeRV;
     Chip editImageNameChip;
     ImageView edit_imagePreviewTV;
 
@@ -83,7 +85,6 @@ public class EditServiceFragment extends Fragment {
         edit_ServiceImg = rootView.findViewById(R.id.editImageBtn);
         edit_SaveBtn = rootView.findViewById(R.id.edit_Savebtn);
         edit_backBtn = rootView.findViewById(R.id.edit_BackBtn);
-//        edit_daytimeRV = rootView.findViewById(R.id.edit_daytimeRV);
         editImageNameChip = rootView.findViewById(R.id.edit_imageChip);
         edit_imagePreviewTV = rootView.findViewById(R.id.edit_imgPreviewIV);
         edit_EstTime = rootView.findViewById(R.id.edit_serviceEstTime);
@@ -94,7 +95,7 @@ public class EditServiceFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance().getReference();
-        database = FirebaseDatabase.getInstance();
+        database = FirebaseDatabase.getInstance("https://key-app-42f22-default-rtdb.asia-southeast1.firebasedatabase.app");
         counterRef = database.getReference("taskCounter");
 
 
@@ -108,7 +109,7 @@ public class EditServiceFragment extends Fragment {
             if (service != null) {
                 // Isi EditText dengan data service yang diterima
                 edit_ServiceName.setText(service.getServiceName());
-                edit_ServicePrice.setText(String.valueOf(service.getServicePrice()));
+                edit_ServicePrice.setText(CurrencyHelper.formatRupiah(service.getServicePrice()));
                 edit_ServiceDesc.setText(service.getServiceDesc());  // Menampilkan deskripsi yang bisa diedit
                 edit_EstTime.setText(String.valueOf(service.getEstTime()));
 
@@ -152,7 +153,23 @@ public class EditServiceFragment extends Fragment {
 
                     }
                 });
-
+                edit_ServicePrice.addTextChangedListener(new TextWatcher() {
+                    private boolean isEditing;
+                    @Override
+                    public void beforeTextChanged(CharSequence s,int start,int count,int after) {}
+                    @Override
+                    public void onTextChanged(CharSequence s,int start,int before,int count) {}
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        if(isEditing) return;
+                        isEditing = true;
+                        double value = CurrencyHelper.parseRupiah(s.toString());
+                        String formatted = CurrencyHelper.formatRupiah(value);
+                        edit_ServicePrice.setText(formatted);
+                        edit_ServicePrice.setSelection(formatted.length());
+                        isEditing = false;
+                    }
+                });
                 editImageNameChip.setOnClickListener(v -> {
                     if (imageUri == null) return;
 
@@ -183,12 +200,42 @@ public class EditServiceFragment extends Fragment {
     }
     private void saveService() {
         String newServiceName = edit_ServiceName.getText().toString();
-        String newServicePrice = edit_ServicePrice.getText().toString();
         String newServiceDesc = edit_ServiceDesc.getText().toString();
         String newEstTime = edit_EstTime.getText().toString();
+        String servicePriceText = edit_ServicePrice.getText().toString();
+
+
+        long servicePrice;
+        try {
+            servicePrice = (long) CurrencyHelper.parseRupiah(servicePriceText);
+
+        } catch (Exception e) {
+            Toast.makeText(getContext(),"Invalid price format",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(newServiceName)) {
+            Toast.makeText(getContext(), "Enter Service Name", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (TextUtils.isEmpty(servicePriceText)) {
+            Toast.makeText(getContext(), "Enter Service Price", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(newServiceDesc)) {
+            Toast.makeText(getContext(), "Enter Service Description", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(newEstTime)) {
+            Toast.makeText(getContext(), "Enter Estimated Time", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         service.setServiceName(newServiceName);
-        service.setServicePrice(Long.parseLong(newServicePrice));
+        service.setServicePrice(servicePrice);
         service.setServiceDesc(newServiceDesc);
         service.setEstTime(Integer.parseInt(newEstTime));
 
@@ -197,12 +244,32 @@ public class EditServiceFragment extends Fragment {
         db.collection("service").document(service.getId())
                 .set(service)
                 .addOnSuccessListener(aVoid -> {
+                    updateMinPrice(service.getBAid(), service.getServicePrice());
                     Toast.makeText(getContext(), "Service updated", Toast.LENGTH_SHORT).show();
                     getActivity().getSupportFragmentManager().popBackStack();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to update service", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void updateMinPrice(String userId, long newPrice) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        DocumentReference userRef = firestore
+                .collection("users")
+                .document(userId);
+
+        userRef.get().addOnSuccessListener(snapshot -> {
+            long currentMin = snapshot.contains("minPrice")
+                    ? snapshot.getLong("minPrice")
+                    : Long.MAX_VALUE;
+
+            if (newPrice < currentMin) {
+                userRef.update("minPrice", newPrice);
+                Log.d("Add /edit Service", "min price skrg "+newPrice);
+            }
+        });
     }
 
 }

@@ -10,14 +10,14 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.keyapp.Models.NotificationItem;
+import com.example.keyapp.Models.Notification;
 import com.example.keyapp.R;
 
 import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
-    private List<NotificationItem> notificationList;
+    private List<Notification> notificationList;
     private Context ctx;
 
     public void setOnclickItemListener(OnItemClickListener listener) {
@@ -28,7 +28,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
 
 
-    public NotificationAdapter(List<NotificationItem> notificationList, Context ctx) {
+    public NotificationAdapter(List<Notification> notificationList, Context ctx) {
         this.notificationList = notificationList;
         this.ctx = ctx;
     }
@@ -44,7 +44,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     @Override
     public void onBindViewHolder(NotificationViewHolder holder, int position) {
-        NotificationItem notification = notificationList.get(position);
+        Notification notification = notificationList.get(position);
         holder.titleTextView.setText(notification.getTitle());
         holder.bodyTextView.setText(notification.getMessage());
         holder.notif_layout.setOnClickListener(v -> {

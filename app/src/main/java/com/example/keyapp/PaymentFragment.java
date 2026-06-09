@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +21,7 @@ import com.example.keyapp.Adapter.BookScheduleAdapter;
 import com.example.keyapp.Helper.NotificationHelper;
 import com.example.keyapp.Models.BookScheduleItem;
 import com.example.keyapp.Models.Order;
+import com.example.keyapp.Models.Payment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -69,28 +71,18 @@ public class PaymentFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-        database = FirebaseDatabase.getInstance();
+        database = FirebaseDatabase.getInstance("https://key-app-42f22-default-rtdb.asia-southeast1.firebasedatabase.app");
         counterRef = database.getReference("orderCounter");
 
         String uid = auth.getCurrentUser().getUid();
-        db.collection("users").document(uid).get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String username = doc.getString("userName");
-
-                        if (username != null) pay_usernameTV.setText(username);
-
-                    }else{
-                        Log.d("paymentfirestore", "Document not found for uid: " + uid);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Gagal mengambil data profil", Toast.LENGTH_SHORT).show();
-                });
+        getUserData(uid);
 
         pay_inputTF.setVisibility(View.GONE);
 
         pay_paymentMethodRG.setOnCheckedChangeListener((group, checkedId) -> {
+            RadioButton selectedRB = group.findViewById(checkedId);
+            selectedPaymentMethod = selectedRB.getText().toString();
+
             if (checkedId == R.id.pay_ewalletRB) {
                 pay_inputTF.setHint("Enter Phone Number");
                 pay_inputTF.setVisibility(View.VISIBLE);
@@ -133,35 +125,54 @@ public class PaymentFragment extends Fragment {
         pay_orderBtn.setOnClickListener(v -> {
             String userId = auth.getCurrentUser().getUid();
             String username = pay_usernameTV.getText().toString();
-            counterRef.get().addOnCompleteListener(orderCounter -> {
-                if(orderCounter.isSuccessful()){
-
-                    Integer order = orderCounter.getResult().getValue(Integer.class);
-                    if(order == null){
-                        order = 1;
-                    }
-                    int orderCount = order + 1;
-                    String orderId = "O" + String.format("%03d",orderCount);
-                    Order newOrder = new Order(orderId, userId, username, serviceName, selectedDate,selectedTime, servicePrice, "Pending", BAid, BAName, location);
-                    db.collection("orders")
-                            .document(orderId)
-                            .set(newOrder)
-                            .addOnSuccessListener(aVoid -> {
-                                counterRef.setValue(orderCount);
-                                Toast.makeText(getContext(), "Order submitted successfully", Toast.LENGTH_SHORT).show();
-                                passOrderToServiceProvider(orderId, BAid, BAName);
-
-                                goToOrderSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(getContext(), "Failed to submit order", Toast.LENGTH_SHORT).show();
-                            });
-                }
-            });
-
+            saveOrdertoDB(userId, username, selectedPaymentMethod);
         });
 
         return rootview;
+    }
+    private void saveOrdertoDB(String userId, String username, String selectedPaymentMethod){
+        counterRef.get().addOnCompleteListener(orderCounter -> {
+            if(orderCounter.isSuccessful()){
+                long timestamp = System.currentTimeMillis();
+                Payment payment = new Payment(selectedPaymentMethod, servicePrice,timestamp);
+                Integer order = orderCounter.getResult().getValue(Integer.class);
+                if(order == null){
+                    order = 1;
+                }
+                int orderCount = order + 1;
+                String orderId = "O" + String.format("%03d",orderCount);
+                Order newOrder = new Order(orderId, userId, username, serviceName, selectedDate,selectedTime, servicePrice, "Pending", BAid, BAName, location, payment);
+                db.collection("orders")
+                        .document(orderId)
+                        .set(newOrder)
+                        .addOnSuccessListener(aVoid -> {
+                            counterRef.setValue(orderCount);
+                            Toast.makeText(getContext(), "Order submitted successfully", Toast.LENGTH_SHORT).show();
+                            passOrderToServiceProvider(orderId, BAid, BAName);
+
+                            goToOrderSuccess();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Failed to submit order", Toast.LENGTH_SHORT).show();
+                        });
+            }
+        });
+    }
+    private void getUserData(String uid){
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String username = doc.getString("userName");
+
+                        if (username != null) pay_usernameTV.setText(username);
+
+                    }else{
+                        Log.d("paymentfirestore", "Document not found for uid: " + uid);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Gagal mengambil data profil", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void passOrderToServiceProvider(String orderId, String BAid, String BAName) {

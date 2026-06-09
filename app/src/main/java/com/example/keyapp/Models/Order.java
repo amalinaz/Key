@@ -14,12 +14,15 @@ public class Order implements Serializable {
     private String BAid;
     private String BAName;
     private String location;
+    private Payment payment;
+
     public Order() {
+
 
     }
 
     public Order(String orderId, String userId, String username, String serviceName, String selectedDate,
-                 String selectedTime, double servicePrice, String status, String BAid, String BAName, String location) {
+                 String selectedTime, double servicePrice, String status, String BAid, String BAName, String location, Payment payment) {
         this.orderId = orderId;
         this.userId = userId;
         this.username = username;
@@ -31,6 +34,7 @@ public class Order implements Serializable {
         this.BAid = BAid;
         this.BAName = BAName;
         this.location = location;
+        this.payment = payment;
     }
 
     public String getUserId() {
@@ -121,4 +125,11 @@ public class Order implements Serializable {
         this.location = location;
     }
 
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+    }
 }

@@ -1,12 +1,12 @@
 package com.example.keyapp.Models;
 
-public class NotificationItem {
+public class Notification {
     private String title;
     private String message;
     private String type;
     private String orderId;
 
-    public NotificationItem(String title, String message, String type, String orderId) {
+    public Notification(String title, String message, String type, String orderId) {
         this.title = title;
         this.message = message;
         this.type = type;

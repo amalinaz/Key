@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/white"
     tools:context=".MainActivity2">
 
 
@@ -23,6 +24,7 @@
         android:layout_gravity="bottom"
         android:background="@color/primary"
         app:fabCradleMargin="10dp"
+
         app:fabCradleRoundedCornerRadius="50dp">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -30,6 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
+            app:itemRippleColor="@color/secondary"
             app:labelVisibilityMode="unlabeled"
             app:menu="@menu/bottom_menu" />
 

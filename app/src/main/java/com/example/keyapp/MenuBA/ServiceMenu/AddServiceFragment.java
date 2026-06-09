@@ -17,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.provider.OpenableColumns;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +34,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.keyapp.Adapter.DaytimeAdapter;
+import com.example.keyapp.Helper.CurrencyHelper;
 import com.example.keyapp.LoginActivity;
 import com.example.keyapp.Models.Daytime;
 import com.example.keyapp.R;
@@ -55,8 +58,6 @@ import java.util.Map;
 public class AddServiceFragment extends Fragment {
 
     private String uid, serviceID;
-    private List<Daytime> daytimeList;
-
     Spinner categorySpinner;
     List<String> categoryService;
 
@@ -111,7 +112,7 @@ public class AddServiceFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance().getReference();
-        database= FirebaseDatabase.getInstance();
+        database= FirebaseDatabase.getInstance("https://key-app-42f22-default-rtdb.asia-southeast1.firebasedatabase.app");
         counterRef = database.getReference("taskCounter");
 
 
@@ -171,6 +172,24 @@ public class AddServiceFragment extends Fragment {
         String uid = auth.getCurrentUser().getUid();
         userId = uid;
 
+        add_ServicePrice.addTextChangedListener(new TextWatcher() {
+            private boolean isEditing;
+            @Override
+            public void beforeTextChanged(CharSequence s,int start,int count,int after) {}
+            @Override
+            public void onTextChanged(CharSequence s,int start,int before,int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                if(isEditing) return;
+                isEditing = true;
+                double value = CurrencyHelper.parseRupiah(s.toString());
+                String formatted = CurrencyHelper.formatRupiah(value);
+                add_ServicePrice.setText(formatted);
+                add_ServicePrice.setSelection(formatted.length());
+                isEditing = false;
+            }
+        });
+
         add_ServiceImg.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("image/*");
@@ -207,30 +226,32 @@ public class AddServiceFragment extends Fragment {
     }
     private void addServicetoDB(String userId) {
         String ServiceName = add_ServiceName.getText().toString();
-        String ServicePrice = add_ServicePrice.getText().toString();
         String ServiceDesc = add_ServiceDesc.getText().toString();
         String EstimatedTime = add_estimatedTime.getText().toString().trim();
+        String servicePriceText = add_ServicePrice.getText().toString();
 
 
+        long servicePrice;
+        try {
+            servicePrice = (long) CurrencyHelper.parseRupiah(servicePriceText);
+
+        } catch (Exception e) {
+            Toast.makeText(getContext(),"Invalid price format",Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (TextUtils.isEmpty(ServiceName)) {
             Toast.makeText(getContext(), "Enter Service Name", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (TextUtils.isEmpty(ServicePrice)) {
+        if (TextUtils.isEmpty(servicePriceText)) {
             Toast.makeText(getContext(), "Enter Email", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        long servicePrice;
-        try {
-            servicePrice = Long.parseLong(ServicePrice);
-        } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
-            return;
-        }
+
 
         if (TextUtils.isEmpty(ServiceDesc)) {
-            Toast.makeText(getContext(), "Enter Password", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Enter Service Description", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -262,8 +283,8 @@ public class AddServiceFragment extends Fragment {
                             serviceID = "S" + String.format("%03d", serviceCounter + 1);
                             Service service = new Service(serviceID, ServiceName, servicePrice, ServiceDesc, selectedCategory, imgUrl, userId, EstTime);
                             counterRef.setValue(serviceCounter+1);
-                            saveToFirestore(serviceID, service);
-
+                            saveService(serviceID, service);
+                            Toast.makeText(getContext(), "Success add service", Toast.LENGTH_SHORT).show();
                         }
 
                     });
@@ -330,7 +351,7 @@ public class AddServiceFragment extends Fragment {
     }
 
 
-    private void saveToFirestore(String serviceID, Service service) {
+    private void saveService(String serviceID, Service service) {
         db.collection("service").document(serviceID)
                 .set(service)
                 .addOnSuccessListener(aVoid -> {
@@ -357,6 +378,7 @@ public class AddServiceFragment extends Fragment {
 
             if (newPrice < currentMin) {
                 userRef.update("minPrice", newPrice);
+                Log.d("Add Service", "min price skrg "+newPrice);
             }
         });
     }

@@ -75,7 +75,7 @@ public class ConfirmAppointmentFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-        database = FirebaseDatabase.getInstance();
+        database = FirebaseDatabase.getInstance("https://key-app-42f22-default-rtdb.asia-southeast1.firebasedatabase.app");
         counterRef = database.getReference("orderCounter");
 
 
@@ -110,12 +110,12 @@ public class ConfirmAppointmentFragment extends Fragment {
                         Map<String, Object> location = (Map<String, Object>) doc.get("location");
                         String BAlocation = (String) location.get("address");
 
-                        if(locType.equals("travel")){
+                        if(locType.equals("homevisit")){
                             CA_locTV.setVisibility(View.VISIBLE);
                             CA_locTV.setFocusableInTouchMode(true);
                             CA_locTV.setFocusable(true);
                             CA_locTV.setClickable(true);
-                        } else if (locType.equals("visit")) {
+                        } else if (locType.equals("studiovisit")) {
                             CA_locTV.setVisibility(View.VISIBLE);
                             CA_locTV.setText(BAlocation);
                             CA_locTV.setFocusable(false);

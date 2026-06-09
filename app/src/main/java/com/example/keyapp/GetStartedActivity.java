@@ -13,7 +13,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.keyapp.Register.RegisterActivity;
 
-public class IntroActivity extends AppCompatActivity {
+public class GetStartedActivity extends AppCompatActivity {
     ImageButton getStartedBtn;
 
     @Override

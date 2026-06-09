@@ -19,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.example.keyapp.Adapter.OrderListAdapter;
 import com.example.keyapp.Adapter.ServiceRecAdapter;
@@ -53,6 +54,7 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
     SeekBar search_priceFilter;
     TextInputEditText search_textInputET;
     TextInputLayout search_textInputLayout;
+    TextView search_noDataTV;
     ConstraintLayout filterContainer;
     ProgressBar search_pb;
     RecyclerView search_RV;
@@ -61,7 +63,7 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
     FirebaseFirestore db;
 
     private int role;
-    private String BAid;
+    private String BAid, locationType;
     private float rating;
     private double latUser, lonUser;
     private FilterOptions currentFilterOptions = new FilterOptions();
@@ -91,11 +93,14 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
         search_chipGroup = rootview.findViewById(R.id.search_chipGroup);
         search_RV = rootview.findViewById(R.id.search_itemRV);
         search_pb = rootview.findViewById(R.id.search_pb);
+        search_noDataTV = rootview.findViewById(R.id.search_noDataTV);
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
         search_RV.setVisibility(View.GONE);
+        search_noDataTV.setVisibility(View.GONE);
+
 
         search_filterchip.setVisibility(View.GONE);
         filterContainer.setVisibility(View.GONE);
@@ -140,13 +145,11 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
                 String query = normalize(search_textInputET.getText().toString());
                 performSearch(query, currentFilterOptions);
 
-                search_pb.setVisibility(View.VISIBLE);
             });
 
             search_textInputET.setOnEditorActionListener((v, actionId, event) -> {
                 String query =normalize(search_textInputET.getText().toString());
                 performSearch(query, currentFilterOptions);
-//                search_pb.setVisibility(View.VISIBLE);
                 return true;
             });
 
@@ -160,7 +163,6 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
             search_textInputET.setOnEditorActionListener((v, actionId, event) -> {
                 String query =normalize(search_textInputET.getText().toString());
                 performSearchRoleBA(query);
-                search_pb.setVisibility(View.VISIBLE);
                 return true;
             });
         }
@@ -223,7 +225,7 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
         });
     }
     private void fetchBA() {
-        db.collection("users").whereEqualTo("userlvl", 2).get().addOnSuccessListener(userQuery -> {
+        db.collection("users").whereEqualTo("userRole", 2).get().addOnSuccessListener(userQuery -> {
             allBAprofiles.clear();
             for (DocumentSnapshot userDoc : userQuery) {
                 String uid = userDoc.getId();
@@ -237,7 +239,8 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
                 float[] results = new float[1];
                 Location.distanceBetween(latUser, lonUser, latitude, longitude, results);
                 double jarakKm = results[0] / 1000.0;
-
+                String locType = userDoc.getString("locationType");
+                locationType = locType;
                 BAprofile ba = new BAprofile(
                         uid,
                         userDoc.getString("userName"),
@@ -267,6 +270,7 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
         performSearch(query, currentFilterOptions);
     }
     private void performSearch(String query, FilterOptions filter) {
+        search_pb.setVisibility(View.VISIBLE);
 
         List<BAprofile> filtered = allBAprofiles.stream()
                 .filter(p -> p.getRating() >= filter.minRating)
@@ -275,7 +279,9 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
                         !Collections.disjoint(serviceCategoryMap.getOrDefault(p.getBAid(), new HashSet<>()),
                                 filter.serviceTypes))
                 .filter(p -> {
-                    if (query == null || query.isEmpty()) return true;
+                    if (query == null || query.isEmpty()) {
+                        return false;
+                    }
 
                     boolean nameMatch = p.getBAname() != null && p.getBAname().toLowerCase().contains(query);
                     boolean distanceMatch = false;
@@ -294,7 +300,14 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
                 .collect(Collectors.toList());
 
         List<BAprofile> ranked = BAProfileHelper.rankProviders(filtered);
+        search_pb.setVisibility(View.GONE);
 
+        if(ranked.isEmpty()){
+            search_pb.setVisibility(View.GONE);
+            search_RV.setVisibility(View.GONE);
+            search_noDataTV.setVisibility(View.VISIBLE);
+            return;
+        }
         search_RV.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ServiceRecAdapter(ranked, getContext());
         adapter.setOnItemClickListener(this);
@@ -305,14 +318,23 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
     }
 
     private void performSearchRoleBA(String query){
-        search_pb.setVisibility(View.VISIBLE);
+
         String q = normalize(query);
+        if(q.isEmpty()){
+            search_pb.setVisibility(View.GONE);
+            search_RV.setVisibility(View.GONE);
+            search_noDataTV.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        search_pb.setVisibility(View.VISIBLE);
         List<Order> filtered = allOrders.stream()
                 .filter(o -> normalize(o.getUsername()).contains(q)
                         || normalize(o.getUserId()).contains(q)
                         || normalize(o.getLocation()).contains(q)
                         || normalize(o.getServiceName()).contains(q))
                 .collect(Collectors.toList());
+
 
 
         search_RV.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -343,6 +365,7 @@ public class SearchFragment extends Fragment implements ServiceRecAdapter.OnItem
         bundle.putString("servicePhoto", selectedBA.getPhotoUrl());
         bundle.putLong("minPrice", selectedBA.getMinPrice());
         bundle.putString("selectedCategory", selectedCategory);
+        bundle.putString("locType", locationType);
         bundle.putDouble("distance", selectedBA.getDistance());
 
         ServiceDetailFragment serviceDetailFragment = new ServiceDetailFragment();

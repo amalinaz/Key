@@ -39,7 +39,7 @@ import java.util.UUID;
 
 public class PortofolioFragment extends Fragment {
 
-    ImageButton porto_backBtn;
+    ImageButton porto_backBtn, porto_infoBtn;
     RecyclerView porto_gridRV;
     FloatingActionButton porto_addBtn;
     PortofolioAdapter adapter;
@@ -57,7 +57,8 @@ public class PortofolioFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_portofolio, container, false);
 
-        porto_backBtn = rootView.findViewById(R.id.oldetail_backBtn);
+        porto_backBtn = rootView.findViewById(R.id.porto_backBtn);
+        porto_infoBtn = rootView.findViewById(R.id.porto_infoBtn);
         porto_gridRV = rootView.findViewById(R.id.porto_gridRV);
         porto_addBtn = rootView.findViewById(R.id.porto_addBtn);
         porto_addBtn.setVisibility(View.GONE);
@@ -68,6 +69,8 @@ public class PortofolioFragment extends Fragment {
         int role = 2;
         uid = null;
 
+        porto_infoBtn.setVisibility(View.GONE);
+
         if(getArguments() != null){
             role = getArguments().getInt("role");
             uidBA = getArguments().getString("BAid");
@@ -75,10 +78,15 @@ public class PortofolioFragment extends Fragment {
 
         if(role == 1){
             fetchPortofolio(uidBA);
+            porto_infoBtn.setVisibility(View.GONE);
         }else if(role == 2){
             porto_addBtn.setVisibility(View.VISIBLE);
             uid = auth.getUid();
             fetchPortofolio(uid);
+            porto_infoBtn.setVisibility(View.VISIBLE);
+            porto_infoBtn.setOnClickListener(v -> {
+                showInfo();
+            });
         }
 
         porto_gridRV.setLayoutManager(new GridLayoutManager(getContext(), 3));
@@ -94,7 +102,30 @@ public class PortofolioFragment extends Fragment {
         });
 
 
+
+
         return rootView;
+    }
+
+    private void showInfo(){
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).create();
+        View view = getLayoutInflater().inflate(R.layout.layout_info_dialog, null);
+        dialog.setView(view);
+        if(dialog.getWindow() != null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        dialog.setCancelable(false);
+
+        TextView titleTV = view.findViewById(R.id.dialog_title);
+        TextView messageTV = view.findViewById(R.id.dialog_message);
+        ImageButton closeBtn = view.findViewById(R.id.dialog_btn);
+
+        titleTV.setText("Portfolio Tips");
+        messageTV.setText("Press and hold a photo to delete it.");
+
+        closeBtn.setOnClickListener(v -> dialog.dismiss());
+
     }
 
     private void showDeleteDialog(Portofolio item) {
@@ -131,7 +162,7 @@ public class PortofolioFragment extends Fragment {
         if (position == -1) return; // safety
 
         FirebaseStorage.getInstance()
-                .getReference(item.storagePath)
+                .getReference(item.getStoragePath())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
 
@@ -139,7 +170,7 @@ public class PortofolioFragment extends Fragment {
                             .collection("portofolio")
                             .document(uid)
                             .collection("photos")
-                            .document(item.documentId)
+                            .document(item.getDocumentId())
                             .delete()
                             .addOnSuccessListener(v -> {
                                 imageList.remove(position);
@@ -168,6 +199,7 @@ public class PortofolioFragment extends Fragment {
                         String documentId = doc.getId();
 
                         imageList.add(new Portofolio(
+                                uid,
                                 imageUrl,
                                 storagePath,
                                 documentId
@@ -211,6 +243,7 @@ public class PortofolioFragment extends Fragment {
                                                     .add(data).addOnSuccessListener(docRef -> {
 
                                                         imageList.add(new Portofolio(
+                                                                uid,
                                                                 downloadUri.toString(),
                                                                 storagePath,
                                                                 docRef.getId()

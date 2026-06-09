@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +25,8 @@ public class LoginActivity extends AppCompatActivity {
 
     ImageButton login_backbtn, login_signInBtn2, login_signInBtn, login_signUpBtn2;
     EditText login_email, login_pass;
-    TextView login_BAloginBtn, login_cpass;
+    private String email, pass;
+    TextView login_cpass;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -52,11 +54,16 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db   = FirebaseFirestore.getInstance();
 
+
         login_signInBtn.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                if(!validateEmail() || ! validatePassword()){
+                email =  login_email.getText().toString();
+                pass =  login_pass.getText().toString();
 
+                if(!validateData(email,pass)){
+                    Toast.makeText(LoginActivity.this, "Please fill out this field", Toast.LENGTH_SHORT).show();
                 }else{
                     checkUser();
                 }
@@ -88,28 +95,25 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    public Boolean validateEmail(){
-        String val = login_email.getText().toString();
-        if(val.isEmpty()){
-            login_email.setError("Username cannot be empty");
-            return false;
+    private boolean validateData(String email, String pass){
+        boolean isValid = true;
+        if(email.isEmpty()){
+            login_email.setError("Email cannot be empty");
+            isValid = false;
         }else{
             login_email.setError(null);
-            return true;
         }
-    }
 
-    public Boolean validatePassword(){
-        String val = login_pass.getText().toString();
-        if(val.isEmpty()){
-            login_pass.setError("Pass cannot be empty");
-            return false;
+        if(pass.isEmpty()){
+            login_pass.setError("Password cannot be empty");
+            isValid = false;
         }else{
             login_pass.setError(null);
-            return true;
-        }
-    }
 
+        }
+
+        return isValid;
+    }
     public void checkUser(){
         String email = login_email.getText().toString();
         String pass = login_pass.getText().toString();
@@ -130,7 +134,7 @@ public class LoginActivity extends AppCompatActivity {
                             .get()
                             .addOnSuccessListener(doc -> {
                                 if (doc.exists()) {
-                                    Long roleLong = doc.getLong("userlvl");
+                                    Long roleLong = doc.getLong("userRole");
                                     int role = roleLong != null ? roleLong.intValue() : 1;
                                     if (role == 1) {
                                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);

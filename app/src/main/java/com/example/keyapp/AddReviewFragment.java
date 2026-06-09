@@ -76,8 +76,8 @@ public class AddReviewFragment extends Fragment {
         addreview_BackBtn.setOnClickListener(v -> {
             getParentFragmentManager().popBackStack();
         });
-        addReviewSubmitBtn.setOnClickListener(v -> {
 
+        addReviewSubmitBtn.setOnClickListener(v -> {
         userRating = addReviewStarBar.getRating();
         String reviewComment = addReviewComment.getText().toString().trim();
             if(userRating == 0){
@@ -85,34 +85,7 @@ public class AddReviewFragment extends Fragment {
                 addReviewErrorTV.setVisibility(View.VISIBLE);
                 return;
             }
-
-            Map<String,Object> reviewData = new HashMap<>();
-            reviewData.put("orderId", id);
-            reviewData.put("rating", userRating);
-            reviewData.put("comment", reviewComment.isEmpty() ? "" : reviewComment);
-            reviewData.put("userId", uid);
-            reviewData.put("userName", custName);
-            reviewData.put("BAid",baid);
-            reviewData.put("timestamp", System.currentTimeMillis());
-            db.collection("reviews")
-                    .document(id)
-                    .set(reviewData)
-                    .addOnSuccessListener(aVoid -> {
-                        addReviewErrorTV.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), "Review submitted", Toast.LENGTH_SHORT).show();
-                        NotificationHelper.saveNotificationToFirestore(
-                                baid,
-                                "BA",
-                                "New Review",
-                                "You received a new review from a customer.",
-                                "new_review",
-                                id
-                        );
-
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Failed to submit review", Toast.LENGTH_SHORT).show();
-                    });
+            saveReview(id,userRating, reviewComment, uid, custName, baid);
             Log.d("Review", "review isi" + userRating +", " +reviewComment+ ", order id" + id);
         });
 
@@ -131,5 +104,36 @@ public class AddReviewFragment extends Fragment {
 
         return rootView;
     }
+
+    private void saveReview(String id, float rating, String reviewComment, String uid, String userName, String BAid){
+        Map<String,Object> reviewData = new HashMap<>();
+        reviewData.put("orderId", id);
+        reviewData.put("rating", rating);
+        reviewData.put("comment", reviewComment.isEmpty() ? "" : reviewComment);
+        reviewData.put("userId", uid);
+        reviewData.put("userName", userName);
+        reviewData.put("BAid",BAid);
+        reviewData.put("timestamp", System.currentTimeMillis());
+        db.collection("reviews")
+                .document(id)
+                .set(reviewData)
+                .addOnSuccessListener(aVoid -> {
+                    addReviewErrorTV.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), "Review submitted", Toast.LENGTH_SHORT).show();
+                    NotificationHelper.saveNotificationToFirestore(
+                            baid,
+                            "BA",
+                            "New Review",
+                            "You received a new review from a customer.",
+                            "new_review",
+                            id
+                    );
+
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to submit review", Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
 }

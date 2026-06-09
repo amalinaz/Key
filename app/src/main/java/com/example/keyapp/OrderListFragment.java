@@ -35,7 +35,7 @@ public class OrderListFragment extends Fragment{
     ImageButton ol_backBtn;
     RecyclerView ol_orderListRV;
     OrderListAdapter adapter;
-    Chip ol_allChip, ol_pendingChip, ol_confirmedChip, ol_rejectedChip;
+    Chip ol_allChip, ol_pendingChip, ol_confirmedChip, ol_rejectedChip,ol_canceledChip;
     FirebaseFirestore db;
     FirebaseAuth auth;
     private String uid;
@@ -49,12 +49,13 @@ public class OrderListFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
       View rootView = inflater.inflate(R.layout.fragment_order_list, container, false);
-      ol_backBtn = rootView.findViewById(R.id.oldetail_backBtn);
+      ol_backBtn = rootView.findViewById(R.id.ms_backBtn);
       ol_orderListRV = rootView.findViewById(R.id.ol_orderListRV);
       ol_allChip = rootView.findViewById(R.id.ol_allChip);
       ol_pendingChip = rootView.findViewById(R.id.ol_pendingChip);
       ol_confirmedChip = rootView.findViewById(R.id.ol_confirmChip);
       ol_rejectedChip = rootView.findViewById(R.id.ol_rejectedChip);
+      ol_canceledChip = rootView.findViewById(R.id.ol_canceledChip);
 
       ol_orderListRV.setLayoutManager(new LinearLayoutManager(requireContext()));
       adapter = new OrderListAdapter(filteredOrderList,getContext());
@@ -84,37 +85,8 @@ public class OrderListFragment extends Fragment{
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("status", "Confirmed");
 
-                db.collection("orders")
-                        .document(order.getOrderId())
-                        .update("status", "Confirmed")
-                        .addOnSuccessListener(aVoid -> {
-                            db.collection("service_provider_orders")
-                                    .document(uid)
-                                    .collection("orders")
-                                    .document(orderid)
-                                    .update(updates)
-                                    .addOnSuccessListener(aVoid2 -> {
-                                        Toast.makeText(getContext(), "Order Confirmed", Toast.LENGTH_SHORT).show();
-                                        filterOrders(currentFilter);
-                                    })
-                                    .addOnFailureListener(e2 -> {
-                                        Toast.makeText(getContext(), "Failed update service provider orders", Toast.LENGTH_SHORT).show();
-                                        Log.e("Firestore", "SP update failed", e2);
-                                    });
-                            Toast.makeText(getContext(), "Order Confirmed", Toast.LENGTH_SHORT).show();
-                            filterOrders(currentFilter);
-                            NotificationHelper.saveNotificationToFirestore(
-                                    custId,
-                                    "customer",
-                                    "Order Confirmed",
-                                    "Your order has been confirmed. Please check the order details.",
-                                    "order_confirmed",
-                                    orderid
-                            );
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(getContext(), "Failed update", Toast.LENGTH_SHORT).show();
-                        });
+                confirmOrder(order, orderid, custId, updates);
+
             }
 
             @Override
@@ -127,37 +99,7 @@ public class OrderListFragment extends Fragment{
 
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("status", "Rejected");
-
-                db.collection("orders")
-                        .document(order.getOrderId())
-                        .update("status", "Rejected")
-                        .addOnSuccessListener(aVoid -> {
-                            db.collection("service_provider_orders")
-                                    .document(uid)
-                                    .collection("orders")
-                                    .document(orderid)
-                                    .update(updates)
-                                    .addOnSuccessListener(aVoid2 -> {
-                                        Toast.makeText(getContext(), "Order Rejected", Toast.LENGTH_SHORT).show();
-                                        filterOrders(currentFilter);
-                                    })
-                                    .addOnFailureListener(e2 -> {
-                                        Toast.makeText(getContext(), "Failed update service provider orders", Toast.LENGTH_SHORT).show();
-                                    });
-                            Toast.makeText(getContext(), "Order Rejected", Toast.LENGTH_SHORT).show();
-                            filterOrders(currentFilter);
-                            NotificationHelper.saveNotificationToFirestore(
-                                    custId,
-                                    "customer",
-                                    "Order Rejected",
-                                    "Your order has been rejected. Please check the order details.",
-                                    "order_rejected",
-                                    orderid
-                            );
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(getContext(), "Failed update", Toast.LENGTH_SHORT).show();
-                        });
+                rejectOrder(order, orderid, custId, updates);
 
             }
 
@@ -177,6 +119,7 @@ public class OrderListFragment extends Fragment{
         ol_pendingChip.setOnClickListener(v -> filterOrders("Pending"));
         ol_confirmedChip.setOnClickListener(v -> filterOrders("Confirmed"));
         ol_rejectedChip.setOnClickListener(v -> filterOrders("Rejected"));
+        ol_canceledChip.setOnClickListener(v -> filterOrders("Canceled"));
 
         ol_backBtn.setOnClickListener(v -> {
 
@@ -185,6 +128,7 @@ public class OrderListFragment extends Fragment{
 
       return rootView;
     }
+
     private void filterOrders(String status) {
         currentFilter = status;
         filteredOrderList.clear();
@@ -218,6 +162,7 @@ public class OrderListFragment extends Fragment{
         });
     }
     private void getOrderIdData(String uid) {
+        orderList.clear();
         db.collection("service_provider_orders")
                 .document(uid)
                 .collection("orders")
@@ -263,6 +208,75 @@ public class OrderListFragment extends Fragment{
                     Log.e("Firestore", "Error getting order", e);
                 });
     }
+
+    private void confirmOrder(Order order, String orderid, String custId ,Map<String, Object> updates ){
+        db.collection("orders")
+                .document(order.getOrderId())
+                .update("status", "Confirmed")
+                .addOnSuccessListener(aVoid -> {
+                    db.collection("service_provider_orders")
+                            .document(uid)
+                            .collection("orders")
+                            .document(orderid)
+                            .update(updates)
+                            .addOnSuccessListener(aVoid2 -> {
+                                Toast.makeText(getContext(), "Order Confirmed", Toast.LENGTH_SHORT).show();
+                                filterOrders(currentFilter);
+                            })
+                            .addOnFailureListener(e2 -> {
+                                Toast.makeText(getContext(), "Failed update service provider orders", Toast.LENGTH_SHORT).show();
+                                Log.e("Firestore", "SP update failed", e2);
+                            });
+                    Toast.makeText(getContext(), "Order Confirmed", Toast.LENGTH_SHORT).show();
+                    filterOrders(currentFilter);
+                    NotificationHelper.saveNotificationToFirestore(
+                            custId,
+                            "customer",
+                            "Order Confirmed",
+                            "Your order has been confirmed. Please check the order details.",
+                            "order_confirmed",
+                            orderid
+                    );
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed update", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void rejectOrder( Order order, String orderid, String custId,   Map<String, Object> updates){
+        db.collection("orders")
+                .document(order.getOrderId())
+                .update("status", "Rejected")
+                .addOnSuccessListener(aVoid -> {
+                    db.collection("service_provider_orders")
+                            .document(uid)
+                            .collection("orders")
+                            .document(orderid)
+                            .update(updates)
+                            .addOnSuccessListener(aVoid2 -> {
+                                Toast.makeText(getContext(), "Order Rejected", Toast.LENGTH_SHORT).show();
+                                filterOrders(currentFilter);
+                            })
+                            .addOnFailureListener(e2 -> {
+                                Toast.makeText(getContext(), "Failed update service provider orders", Toast.LENGTH_SHORT).show();
+                            });
+                    Toast.makeText(getContext(), "Order Rejected", Toast.LENGTH_SHORT).show();
+                    filterOrders(currentFilter);
+                    NotificationHelper.saveNotificationToFirestore(
+                            custId,
+                            "customer",
+                            "Order Rejected",
+                            "Your order has been rejected. Please check the order details.",
+                            "order_rejected",
+                            orderid
+                    );
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed update", Toast.LENGTH_SHORT).show();
+                });
+
+    }
+
 
 
 }

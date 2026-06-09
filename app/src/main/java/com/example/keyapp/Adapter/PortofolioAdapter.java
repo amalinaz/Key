@@ -42,7 +42,7 @@ public class PortofolioAdapter extends RecyclerView.Adapter<PortofolioAdapter.Po
         Portofolio item = imageList.get(position);
 
         Glide.with(context)
-                .load(item.imageUrl)
+                .load(item.getImageUrl())
                 .into(holder.imgPhoto);
 
         if(role == 2){

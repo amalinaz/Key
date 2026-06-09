@@ -88,6 +88,15 @@ public class ReviewFragment extends Fragment {
         review_RV.setAdapter(adapter);
 
 
+        getReviewData();
+        review_backBtn.setOnClickListener(v -> {
+            getParentFragmentManager().popBackStack();
+        });
+
+        return rootView;
+    }
+
+    private void getReviewData(){
         db.collection("reviews")
                 .whereEqualTo("BAid", baid)
                 .get()
@@ -101,13 +110,7 @@ public class ReviewFragment extends Fragment {
                     calculateRatingStats(reviewList, baid);
                 });
 
-        review_backBtn.setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack();
-        });
-
-        return rootView;
     }
-
     private void calculateRatingStats(List<Review> reviewList, String baid){
         int count5 = 0, count4 = 0, count3 = 0, count2 = 0, count1 = 0;
         float sumRating = 0;

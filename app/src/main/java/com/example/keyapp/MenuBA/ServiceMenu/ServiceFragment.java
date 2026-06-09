@@ -1,6 +1,9 @@
 package com.example.keyapp.MenuBA.ServiceMenu;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,8 +17,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.keyapp.LoginActivity;
@@ -28,7 +33,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ServiceFragment extends Fragment implements ServiceAdapter.OnItemClickListener {
@@ -85,18 +92,31 @@ public class ServiceFragment extends Fragment implements ServiceAdapter.OnItemCl
         }
 
         uid = currentUser.getUid();
-        db.collection("service").get().addOnSuccessListener(queryDocumentSnapshots -> {
+        getService(uid);
+
+    }
+
+    private  void getService(String uid){
+        db.collection("service").addSnapshotListener((value, error) -> {
+            if (error != null) {
+                return;
+            }
             serviceList.clear();
-            for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
+            for (DocumentSnapshot snapshot : value.getDocuments()) {
                 Service service = snapshot.toObject(Service.class);
                 if (service != null && service.getBAid().equals(uid)) {
                     serviceList.add(service);
                 }
             }
             serviceAdapter.notifyDataSetChanged();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(requireContext(), "Failed to load data", Toast.LENGTH_SHORT).show();
         });
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (uid != null) {
+            getService(uid);
+        }
     }
 
     @Override
@@ -120,16 +140,48 @@ public class ServiceFragment extends Fragment implements ServiceAdapter.OnItemCl
         Service serviceToDelete = serviceList.get(position);
         String serviceId = serviceToDelete.getId();
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        deleteDialog(serviceId, position);
+
+    }
+
+    private void deleteDialog(String serviceId, int position){
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).create();
+        View view = getLayoutInflater().inflate(R.layout.layout_alert_dialog, null);
+        dialog.setView(view);
+        if(dialog.getWindow() != null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        dialog.setCancelable(false);
+
+        TextView titleTV = view.findViewById(R.id.dialog_title);
+        TextView messageTV = view.findViewById(R.id.dialog_message);
+        Button rejectBtn = view.findViewById(R.id.dialog_btnA);
+        Button acceptBtn = view.findViewById(R.id.dialog_btnB);
+
+        titleTV.setText("Delete Service");
+        messageTV.setText("Are you sure you want to delete this service? This action cannot be undone.");
+        rejectBtn.setText("No");
+        acceptBtn.setText("Delete");
+
+        acceptBtn.setOnClickListener(v -> {
+            deleteService(serviceId, position);
+            dialog.dismiss();
+        });
+
+        rejectBtn.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    private void deleteService(String serviceId, int position){
         db.collection("service").document(serviceId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     serviceList.remove(position);
                     serviceAdapter.notifyItemRemoved(position);
-                    Toast.makeText(requireContext(), "Item Deleted from Firebase", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Service Deleted", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Failed to delete item from Firebase", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Failed to delete Service", Toast.LENGTH_SHORT).show();
                 });
     }
 }

@@ -4,9 +4,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
-import java.util.Map;
-
-public class NotificationHelper {
+import java.util.Map;public class NotificationHelper {
     public static void saveNotificationToFirestore(
             String receiverId,
             String receiverRole,

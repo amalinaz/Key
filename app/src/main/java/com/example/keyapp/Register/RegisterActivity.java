@@ -100,7 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAuth = FirebaseAuth.getInstance();
-                database = FirebaseDatabase.getInstance();
+                database = FirebaseDatabase.getInstance("https://key-app-42f22-default-rtdb.asia-southeast1.firebasedatabase.app");
                 refDatabase = database.getReference("users");
                 counterRef = database.getReference("userCounter");
 
@@ -108,27 +108,9 @@ public class RegisterActivity extends AppCompatActivity {
                 String email = String.valueOf(reg_email.getText());
                 String pass = String.valueOf(reg_pass.getText());
 
-                if(TextUtils.isEmpty(username) || username.length() < 3 || username.length() > 15){
-                    usernameTIL.setError("Username must be 3–15 characters");
-                } else {
-                    usernameTIL.setError(null);
-                }
-                if(TextUtils.isEmpty(email)){
-                    emailTIL.setError("Email cannot be empty");
-                } else if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
-                    emailTIL.setError("Enter a valid email address");
-                } else {
-                    emailTIL.setError(null); // clear error
-                }
-                String pattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$";
-                if(pass.length() < 8){
-                    passTIL.setError("Password must be at least 8 characters");
+                if(!validateData(username, email, pass)){
+                    Toast.makeText(RegisterActivity.this, "Please correct the errors above", Toast.LENGTH_SHORT).show();
                     return;
-                }else if(!pass.matches(pattern)){
-                    passTIL.setError("Password must contain letters and numbers only");
-                    return;
-                }else {
-                    passTIL.setError(null);
                 }
 
                 mAuth.createUserWithEmailAndPassword(email,pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -150,6 +132,7 @@ public class RegisterActivity extends AppCompatActivity {
                                     String hashedPassword = hashPassword(pass);
                                     User newUser = new User(userId, username, email, hashedPassword, 1, null);
                                     counterRef.setValue(userCounter + 1);
+                                    Log.d("FirestoreDebug", "Current UID: " + uid);
 
                                     saveUserDataToFirestore(uid, newUser);
                                     refDatabase.child(uid).child("userId").setValue(userId);
@@ -167,6 +150,8 @@ public class RegisterActivity extends AppCompatActivity {
                     }
 
 
+                }).addOnFailureListener(e -> {
+                    Log.e("Registration Error", "Error: ", e);
                 });
 
             }
@@ -186,6 +171,38 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
+    private boolean validateData(String username, String email, String pass){
+        boolean isValid = true;
+
+        if(TextUtils.isEmpty(username) || username.length() < 3 || username.length() > 15){
+            usernameTIL.setError("Username must be 3–15 characters");
+            isValid = false;
+        } else {
+            usernameTIL.setError(null);
+        }
+        if(TextUtils.isEmpty(email)){
+            emailTIL.setError("Email cannot be empty");
+            isValid = false;
+        } else if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+            emailTIL.setError("Enter a valid email address");
+            isValid = false;
+        } else {
+            emailTIL.setError(null); // clear error
+        }
+        String pattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$";
+        if(pass.length() < 8){
+            passTIL.setError("Password must be at least 8 characters");
+            isValid = false;
+        }else if(!pass.matches(pattern)){
+            passTIL.setError("Password must contain letters and numbers only");
+            isValid = false;
+        }else {
+            passTIL.setError(null);
+        }
+
+        return isValid ;
+
+    }
 
     public static String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
@@ -196,8 +213,9 @@ public class RegisterActivity extends AppCompatActivity {
         db.collection("users").document(uid)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(RegisterActivity.this, "User data saved to Firestore", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.putExtra("showCompleteProfilePopup", true);
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {

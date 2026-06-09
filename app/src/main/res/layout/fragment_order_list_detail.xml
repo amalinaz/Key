@@ -18,7 +18,7 @@
             android:layout_height="wrap_content">
 
             <ImageButton
-                android:id="@+id/oldetail_backBtn"
+                android:id="@+id/ms_backBtn"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginStart="24dp"
@@ -39,7 +39,7 @@
                 android:fontFamily="@font/alegreyasans_bold"
                 android:text="@string/orderlistdetail"
                 android:textSize="24sp"
-                app:layout_constraintStart_toEndOf="@+id/oldetail_backBtn"
+                app:layout_constraintStart_toEndOf="@+id/ms_backBtn"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -187,6 +187,21 @@
                 android:text="@string/AddReview"
                 android:textColor="@color/text"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/oldetail_cancelBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="100dp"
+                android:layout_marginEnd="83dp"
+                android:backgroundTint="@color/secondary"
+                android:text="@string/Cancel"
+                android:textColor="@color/text"
+                app:layout_constraintEnd_toStartOf="@+id/oldetail_chatBtn"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toEndOf="@+id/oldetail_rescheduleBtn"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

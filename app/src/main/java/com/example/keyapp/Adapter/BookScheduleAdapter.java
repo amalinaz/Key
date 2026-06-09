@@ -13,7 +13,10 @@ import com.example.keyapp.Models.BookScheduleItem;
 import com.example.keyapp.Models.ScheduleItem;
 import com.example.keyapp.R;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class BookScheduleAdapter extends RecyclerView.Adapter<BookScheduleAdapter.BookScheduleViewHolder> {
     private List<BookScheduleItem> bookScheduleItems;
@@ -34,6 +37,13 @@ public class BookScheduleAdapter extends RecyclerView.Adapter<BookScheduleAdapte
     @Override
     public void onBindViewHolder(@NonNull BookScheduleAdapter.BookScheduleViewHolder holder, int position) {
         BookScheduleItem bookScheduleItem = bookScheduleItems.get(position);
+//        LocalDate date = LocalDate.parse(bookScheduleItem.getDate());
+//
+//        DateTimeFormatter formatter =
+//                DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH);
+//
+//        String formattedDate = date.format(formatter);
+
 
         holder.bs_BANameTV.setText(bookScheduleItem.getBAname());
         holder.bs_serviceNameTV.setText(bookScheduleItem.getServiceName());

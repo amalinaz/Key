@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 
 import com.example.keyapp.Adapter.NotificationAdapter;
-import com.example.keyapp.Models.NotificationItem;
+import com.example.keyapp.Models.Notification;
 import com.example.keyapp.Schedule.ScheduleFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -30,7 +30,7 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
     FirebaseAuth auth;
     FirebaseFirestore db;
 
-    private List<NotificationItem> notificationList = new ArrayList<>();
+    private List<Notification> notificationList = new ArrayList<>();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -50,6 +50,8 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                 getParentFragmentManager().popBackStack();
 
         });
+        String currentUserId = auth.getCurrentUser().getUid();
+        Log.d("UID","+ " +currentUserId);
 
         loadNotifications();
         return rootview;
@@ -60,7 +62,7 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
             return;
         }
 
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentUserId = auth.getCurrentUser().getUid();
         Log.d("Notif", "uid skrg :"+currentUserId);
         db.collection("notifications")
                 .whereEqualTo("receiverId", currentUserId)
@@ -69,6 +71,15 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                     if (error != null || value == null) {
                         return;
                     }
+                    Log.d("NOTIF", "Listener triggered");
+
+                    if (error != null) {
+                        Log.e("NOTIF", "Error", error);
+                        return;
+                    }
+
+                    Log.d("NOTIF", "Docs = " + value.getDocuments().size());
+
                      notificationList.clear();
 
                     for (DocumentSnapshot doc : value.getDocuments()) {
@@ -77,7 +88,7 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                         String type = doc.getString("type");
                         String orderId = doc.getString("orderId");
                         Log.d("notif", "tipe" +type);
-                        notificationList.add(new NotificationItem(title, message,type, orderId));
+                        notificationList.add(new Notification(title, message,type, orderId));
                         Log.d("Notif", "Notif yg ada "+title+" " +message);
                     }
 

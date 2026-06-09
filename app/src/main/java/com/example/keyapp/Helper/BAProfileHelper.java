@@ -12,7 +12,10 @@ import java.util.List;
 public class BAProfileHelper {
 
     public static List<BAprofile> rankProviders(List<BAprofile> providers) {
-        double wRating = 0.3, wDistance = 0.25, wExperience = 0.25, wPrice = 0.2;
+        double wRating = 0.3125;
+        double wDistance = 0.25;
+        double wExperience = 0.25;
+        double wPrice = 0.1875;
 
         double maxRating = providers.stream().mapToDouble(p -> p.getRating()).max().orElse(1);
         double minDistance = providers.stream().mapToDouble(p -> p.getDistance()).min().orElse(1);

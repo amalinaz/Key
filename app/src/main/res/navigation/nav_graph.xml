@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/bookAppointmentFragment"
-        android:name="com.example.keyapp.BookAppointmentFragment"
+        android:name="com.example.keyapp.PricelistFragment"
         android:label="Book Appointment">
 
 
@@ -17,6 +17,6 @@
 
     <fragment
         android:id="@+id/appointmentFragment"
-        android:name="com.example.keyapp.AppointmentFragment"
+        android:name="com.example.keyapp.BookAppointmentFragment"
         android:label="Appointment" />
 </navigation>

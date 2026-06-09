@@ -96,7 +96,7 @@ public class ScheduleFragment extends Fragment implements ScheduleMenuAdapter.On
         });
 
 
-        fetchOrdersForCurrentUser(role, uid);
+        getSchedule(role, uid);
         schedule_CalendarView.setOnDateChangeListener(((view, year, month, dayOfMonth) -> {
             selectedDate = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
             filterScheduleByDate(selectedDate);
@@ -134,7 +134,7 @@ public class ScheduleFragment extends Fragment implements ScheduleMenuAdapter.On
         adapterCalendar.notifyDataSetChanged();
     }
 
-    private void fetchOrdersForCurrentUser(int role, String uid) {
+    private void getSchedule(int role, String uid) {
         String field = role == 1 ? "userId" : "baid";
         db.collection("orders")
                 .whereEqualTo(field, uid)
@@ -154,9 +154,15 @@ public class ScheduleFragment extends Fragment implements ScheduleMenuAdapter.On
                         String location = doc.getString("location");
                         String username = doc.getString("username");
 
+
+
                         Order orderSchedule = new Order(orderId, userId, username, serviceName, selectedDate,
-                                    selectedTime, servicePrice, status, baId, baName, location);
-                        scheduleList.add(orderSchedule);
+                                    selectedTime, servicePrice, status, baId, baName, location,null);
+
+                        if(status.equals("Confirmed") || status.equals("Completed")){
+                            scheduleList.add(orderSchedule);
+                        }
+
                     }
                     Collections.sort(scheduleList, (s1, s2) -> {
 

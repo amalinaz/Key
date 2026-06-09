@@ -14,7 +14,10 @@ import com.example.keyapp.Models.Order;
 import com.example.keyapp.Models.Schedule;
 import com.example.keyapp.R;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class ScheduleMenuAdapter extends RecyclerView.Adapter<ScheduleMenuAdapter.ScheduleMenuViewHolder>{
 
@@ -53,8 +56,23 @@ public class ScheduleMenuAdapter extends RecyclerView.Adapter<ScheduleMenuAdapte
         } else {
             displayName = schedule.getUsername();
         }
+
+        DateTimeFormatter inputFormatter =
+                DateTimeFormatter.ofPattern("yyyy-M-d");
+
+        LocalDate date =
+                LocalDate.parse(schedule.getSelectedDate(), inputFormatter);
+
+        DateTimeFormatter outputFormatter =
+                DateTimeFormatter.ofPattern(
+                        "dd MMMM yyyy",Locale.ENGLISH
+                );
+
+        String formattedDate = date.format(outputFormatter);
+
+
         holder.s_serviceNameTV.setText(schedule.getServiceName());
-        holder.s_date.setText(schedule.getSelectedDate());
+        holder.s_date.setText(formattedDate);
         holder.s_time.setText(schedule.getSelectedTime());
         holder.s_userNameTV.setText(displayName);
         holder.s_locTV.setText(schedule.getLocation());

@@ -13,7 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.keyapp.Models.Order;
 import com.example.keyapp.R;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.OrderListViewHolder> {
     private List<Order> orderList;
@@ -39,16 +42,28 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public void onBindViewHolder(@NonNull OrderListAdapter.OrderListViewHolder holder, int position) {
         Order order = orderList.get(position);
 
-        if(order.getStatus().equals("Confirmed") || order.getStatus().equals("Rejected") || order.getStatus().equals("Completed")){
+        if(order.getStatus().equals("Confirmed") || order.getStatus().equals("Rejected") || order.getStatus().equals("Completed")|| order.getStatus().equals("Canceled")){
             holder.order_confirmBtn.setVisibility(View.GONE);
             holder.order_rejectBtn.setVisibility(View.GONE);
         }else{
             holder.order_confirmBtn.setVisibility(View.VISIBLE);
             holder.order_rejectBtn.setVisibility(View.VISIBLE);
         }
+        DateTimeFormatter inputFormatter =
+                DateTimeFormatter.ofPattern("yyyy-M-d");
+
+        LocalDate date =
+                LocalDate.parse(order.getSelectedDate(), inputFormatter);
+
+        DateTimeFormatter outputFormatter =
+                DateTimeFormatter.ofPattern(
+                        "dd MMMM yyyy",Locale.ENGLISH
+                );
+
+        String formattedDate = date.format(outputFormatter);
 
         holder.order_id.setText(order.getOrderId());
-        holder.order_dateTime.setText(order.getSelectedDate() + " - "+ order.getSelectedTime());
+        holder.order_dateTime.setText(formattedDate + " - "+ order.getSelectedTime());
         holder.order_serviceName.setText(order.getServiceName());
         holder.order_custName.setText(order.getUsername());
         holder.order_location.setText(order.getLocation());

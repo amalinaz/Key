@@ -13,6 +13,8 @@ import com.example.keyapp.Models.Order;
 import com.example.keyapp.R;
 
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,8 +40,19 @@ public class OrderListDetailAdapter extends RecyclerView.Adapter<OrderListDetail
         NumberFormat formatter =
                 NumberFormat.getInstance(new Locale("id", "ID"));
 
+        DateTimeFormatter inputFormatter =
+                DateTimeFormatter.ofPattern("yyyy-M-d");
+
+        LocalDate date =
+                LocalDate.parse(order.getSelectedDate(), inputFormatter);
+
+        DateTimeFormatter outputFormatter =
+                DateTimeFormatter.ofPattern("dd MMMM yyyy",Locale.ENGLISH);
+
+        String formattedDate = date.format(outputFormatter);
+
         holder.old_idTV.setText(order.getOrderId());
-        holder.old_dateTimeTV.setText(order.getSelectedDate() + " - "+ order.getSelectedTime());
+        holder.old_dateTimeTV.setText(formattedDate + " - "+ order.getSelectedTime());
         holder.old_serviceTV.setText(order.getServiceName());
         holder.old_custNameTV.setText(order.getUsername());
         holder.old_locationTV.setText(order.getLocation());

@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/white"
     tools:context=".LoginActivity">
 
     <LinearLayout
@@ -185,23 +186,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
-            <com.google.android.gms.common.SignInButton
-                android:id="@+id/login_signInGoogleBtn"
-                android:layout_width="349dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textAlignment="center"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-            </com.google.android.gms.common.SignInButton>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
 

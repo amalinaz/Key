@@ -129,6 +129,11 @@ public class ChatFragment extends Fragment {
 
                         if (message != null) {
                             chatMessageList.add(message);
+                            if (message.getReceiverId().equals(uid)
+                                    && !message.isRead()) {
+
+                                doc.getReference().update("read", true);
+                            }
                         }
                     }
 

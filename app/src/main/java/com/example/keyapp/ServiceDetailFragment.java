@@ -37,7 +37,7 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
     FirebaseAuth auth;
     ImageButton sd_BackBtn, sd_chatBtn;
     ImageView sd_profileIV;
-    TextView sd_categoryTV, sd_nameTV, sd_categoryTypeTV, sd_ratingTV, sd_distTV,sd_noreviewTV;
+    TextView sd_categoryTV, sd_nameTV, sd_categoryTypeTV, sd_ratingTV, sd_distTV,sd_noreviewTV, sd_locTypeTV;
     MaterialButton sd_bookBtn;
     RecyclerView sd_portofolioRV, sd_reviewRV;
     SDPortofolioAdapter portoAdapter;
@@ -65,6 +65,7 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
         sd_bookBtn = rootView.findViewById(R.id.sd_bookBtn);
         sd_noreviewTV = rootView.findViewById(R.id.sd_noreviewTV);
         sd_chatBtn = rootView.findViewById(R.id.sd_chatBtn);
+        sd_locTypeTV = rootView.findViewById(R.id.sd_locTypeTV);
 
         sd_noreviewTV.setVisibility(View.GONE);
         db = FirebaseFirestore.getInstance();
@@ -91,6 +92,7 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
             String servicePhoto = getArguments().getString("servicePhoto");
             long minPrice = getArguments().getLong("minPrice");
             String selectedCategory = getArguments().getString("selectedCategory");
+            String locType = getArguments().getString("locType");
             double dist = getArguments().getDouble("distance");
 
             sd_nameTV.setText(serviceName);
@@ -103,16 +105,26 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
             }else if(selectedCategory.equals("Eyelash Artist")){
                 category = "Eyelash";
             }
+
+            String locationType ="";
+            Log.d("Service Detail", "Loctype" +locType);
+            if(locType.equals("homevisit")){
+                locationType = "Home Visit";
+            }else if(locType.equals("studiovisit")){
+                locationType = "On-site Studio / Studio Visit";
+            }
+
+            sd_locTypeTV.setText(locationType);
             sd_categoryTypeTV.setText(category);
-            sd_ratingTV.setText("blm");
             sd_distTV.setText(String.format("%.2f km", dist));
 
             Glide.with(getContext()).load(servicePhoto).into(sd_profileIV);
         }
-        fetchPortofolioSnippet();
-        fetchRatingSnippet();
+
+
+        fetchData();
         sd_bookBtn.setOnClickListener(v -> {
-            Fragment bookAppointment = new BookAppointmentFragment();
+            Fragment bookAppointment = new PricelistFragment();
             FrameLayout sd = rootView.findViewById(R.id.serviceDetailLayout);
             Bundle bundle = new Bundle();
             bundle.putString("BAid", BAid);
@@ -130,6 +142,11 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
         });
 
         return rootView;
+    }
+
+    private void fetchData(){
+        fetchPortofolioSnippet();
+        fetchRatingSnippet();
     }
 
     private void fetchPortofolioSnippet() {

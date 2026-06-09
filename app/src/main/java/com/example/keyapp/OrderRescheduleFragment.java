@@ -47,6 +47,8 @@ public class OrderRescheduleFragment extends Fragment {
     private Map<String, List<String>> availableTimes;
     String BAid;
 
+    private FirebaseFirestore db;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -72,8 +74,8 @@ public class OrderRescheduleFragment extends Fragment {
             confirmDialog(selectedDate, selectedTime);
         });
 
-        FirebaseFirestore.getInstance()
-                .collection("user_schedules")
+        db = FirebaseFirestore.getInstance();
+        db.collection("user_schedules")
                 .document(BAid)
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -153,7 +155,7 @@ public class OrderRescheduleFragment extends Fragment {
             FirebaseFirestore.getInstance()
                     .collection("orders")
                     .document(order.getOrderId())
-                    .update("rescheduleRequest", req)
+                    .update("rescheduleRequest", req, "status", "Pending")
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(getContext(), "Reschedule request sent", Toast.LENGTH_SHORT).show();
                         NotificationHelper.saveNotificationToFirestore(BAid, "BA", "Reschedule Request", "Customer has requested a schedule change. Please check the order details.", "reschedule_request", order.getOrderId());

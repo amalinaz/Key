@@ -43,6 +43,8 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
     RecyclerView srRV;
     List<BAprofile> BAlist = new ArrayList<>();
     private String selectedCategory = "";
+    private Map<String, String> locationTypeMap = new HashMap<>();
+//    private String locationType;
     private double latUser, lonUser;
 
 
@@ -168,14 +170,16 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
         });
 
         db.collection("users")
-                .whereEqualTo("userlvl", 2)
+                .whereEqualTo("userRole", 2)
                 .get()
                 .addOnSuccessListener(userQuery -> {
                     List<BAprofile> finalList = new ArrayList<>();
 
                     for (DocumentSnapshot userDoc : userQuery) {
                         String uid = userDoc.getId();
-
+                        String locType = userDoc.getString("locationType");
+                        Log.d("Home", "Loctyope pas baca" + locType);
+                        locationTypeMap.put(uid, locType);
                         if(serviceMap.containsKey(uid)){
                             Double latitude = userDoc.getDouble("location.latitude");
                             Double longitude = userDoc.getDouble("location.longitude");
@@ -211,6 +215,8 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
     public void getServiceDetail(int position) {
         BAprofile selectedBA = BAlist.get(position);
 
+        String locationType = locationTypeMap.get(selectedBA.getBAid());
+
         Bundle bundle = new Bundle();
         bundle.putString("baId", selectedBA.getBAid());
         bundle.putString("serviceName", selectedBA.getBAname());
@@ -218,7 +224,9 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
         bundle.putLong("minPrice", selectedBA.getMinPrice());
         bundle.putString("selectedCategory", selectedCategory);
         bundle.putDouble("distance", selectedBA.getDistance());
+        bundle.putString("locType", locationType);
 
+        Log.d("Home", "Loctype" +locationType);
         ServiceDetailFragment serviceDetailFragment = new ServiceDetailFragment();
         serviceDetailFragment.setArguments(bundle);
         ((MainActivity) requireActivity()).openFragment(serviceDetailFragment, true);

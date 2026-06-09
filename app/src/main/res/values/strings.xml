@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">KeyApp</string>
-
+    <string name="key">Key</string>
     <string name="introtitle">Graceful and Feminine</string>
     <string name="introsubtitle">Every woman deserves to feel beautiful and pampered.
         We’re here with personalized beauty services to help you shine from the inside out.</string>
@@ -42,7 +42,7 @@
     <!--    home beauty artist-->
     <string name="services">Your Services</string>
     <string name="viewservice">View Service</string>
-    <string name="portofolio">Portofolio</string>
+    <string name="portofolio">Portfolio</string>
     <string name="rating">Rating</string>
     <string name="history">History</string>
     <string name="manageSchedule">Manage Schedule</string>
@@ -123,6 +123,8 @@
 
     <string name="viewAll">View All</string>
     <string name="Review">Review</string>
+    <string name="Cancel">Cancel</string>
+    <string name="Canceled">Canceled</string>
     <string name="AddReview">Add Review</string>
     <string name="Pricelist">Pricelist</string>
     <string name="Appointment">Book Appointment</string>
@@ -132,8 +134,8 @@
 
     <string name="locationtype">Service Location Type</string>
     <string-array name="loctype">
-        <item>Customer visits my place</item>
-        <item>I travel to the customer</item>
+        <item>On-site Studio / Studio Visit</item>
+        <item>Home Service</item>
     </string-array>
 
     <string name="confirm">Confirm</string>
@@ -154,6 +156,8 @@
 
     <string name="servicepricemin">Rp. 0</string>
     <string name="servicepricemax">Rp. 5000000</string>
+
+    <string name="Nodata">No Result Found</string>
 
 
 </resources>

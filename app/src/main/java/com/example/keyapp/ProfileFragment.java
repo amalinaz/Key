@@ -34,7 +34,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.example.keyapp.Adapter.TimeListAdapter;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -68,8 +67,6 @@ public class ProfileFragment extends Fragment {
     RadioGroup locTypeRG;
     Uri image;
     TextInputLayout profile_usnTIL, profile_emailTIL, profile_locTIL, profile_phoneTIL, profile_expTIL;
-
-    TimeListAdapter adapter;
     View line;
 
     private FirebaseAuth mAuth;
@@ -137,21 +134,41 @@ public class ProfileFragment extends Fragment {
 
         }
 
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(),
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_STORAGE_PERMISSION);
-        } else {
-            openGallery();
-        }
 
         checkAndRequestLocationPermission();
         uid = currentUser.getUid();
+        getProfileData(uid);
+
+        profile_changeProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            activityResultLauncher.launch(intent);
+        });
+
+        profile_logoutBtn.setOnClickListener(v -> {
+            mAuth.signOut();
+            Intent intent = new Intent(requireActivity(), MainActivity.class);
+            startActivity(intent);
+            requireActivity().finish();
+            return;
+        });
+
+        profile_backBtn.setOnClickListener(v -> {
+            getParentFragmentManager().popBackStack();
+        });
+
+        profile_saveBtn.setOnClickListener(v -> {
+            saveProfileToFirestore();
+            saveLocationCombined();
+        });
+
+    }
+
+    private void getProfileData(String uid){
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
-                        Long roleLong = doc.getLong("userlvl");
+                        Long roleLong = doc.getLong("userRole");
                         role = roleLong != null ? roleLong.intValue() : 1;
 
                         Map<String, Object> location = (Map<String, Object>) doc.get("location");
@@ -178,12 +195,13 @@ public class ProfileFragment extends Fragment {
                             profile_locCL.setVisibility(View.VISIBLE);
 
                             if (locationType != null) {
+                                Log.d("Profile", "loctypenya :"+locationType);
                                 for (int i = 0; i < locTypeRG.getChildCount(); i++) {
                                     RadioButton radioButton = (RadioButton) locTypeRG.getChildAt(i);
-                                    if (locationType.equals("visit") && radioButton.getText().toString().equals("Customer visits my place")) {
+                                    if (locationType.equals("studiovisit") && radioButton.getText().toString().equals("On-site Studio / Studio Visit")) {
                                         radioButton.setChecked(true);
                                         break;
-                                    } else if (locationType.equals("travel") && radioButton.getText().toString().equals("I travel to the customer")) {
+                                    } else if (locationType.equals("homevisit") && radioButton.getText().toString().equals("Home Service")) {
                                         radioButton.setChecked(true);
                                         break;
                                     }
@@ -227,29 +245,6 @@ public class ProfileFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Gagal mengambil data profil", Toast.LENGTH_SHORT).show();
                 });
-
-        profile_changeProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("image/*");
-            activityResultLauncher.launch(intent);
-        });
-
-        profile_logoutBtn.setOnClickListener(v -> {
-            mAuth.signOut();
-            Intent intent = new Intent(requireActivity(), MainActivity.class);
-            startActivity(intent);
-            requireActivity().finish();
-            return;
-        });
-
-        profile_backBtn.setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack();
-        });
-
-        profile_saveBtn.setOnClickListener(v -> {
-            saveProfileToFirestore();
-            saveLocationCombined();
-        });
 
     }
 
@@ -345,10 +340,10 @@ public class ProfileFragment extends Fragment {
             String expStr = profile_experienceTV.getText().toString().trim();
             Double experience = expStr.isEmpty() ? 0.0 : Double.valueOf(expStr);
 
-            if (selectedText.equals("Customer visits my place")) {
-                locationType = "visit";
-            } else if (selectedText.equals("I travel to the customer")) {
-                locationType = "travel";
+            if (selectedText.equals("On-site Studio / Studio Visit")) {
+                locationType = "studiovisit";
+            } else if (selectedText.equals("Home Service")) {
+                locationType = "homevisit";
             } else {
                 locationType = "unknown";
             }
@@ -406,12 +401,12 @@ public class ProfileFragment extends Fragment {
             ref.getDownloadUrl().addOnSuccessListener(uri -> {
                 String imageUrl = uri.toString();
                 saveProfileImageToFirestore(imageUrl, uid);
-                Toast.makeText(requireContext(), "Image Uploaded!!", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(requireContext(), "Image Uploaded!!", Toast.LENGTH_SHORT).show();
             });
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(requireContext(), "Failed!" + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(requireContext(), "Failed!" + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -419,49 +414,101 @@ public class ProfileFragment extends Fragment {
         db.collection("users").document(uid)
                 .update("profileImageUrl", imageUrl)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(), "Image URL saved to Firestore!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(requireContext(), "Image URL saved to Firestore!", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Failed to save image URL", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(requireContext(), "Failed to save image URL", Toast.LENGTH_SHORT).show();
                 });
     }
     private void saveLocationCombined() {
         String manualAddress = profile_location.getText().toString().trim();
 
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+        // If user entered an address manually, prioritize it
+        if (!manualAddress.isEmpty()) {
+            geocodeManualAddressAndSave(manualAddress);
+            return;
+        }
+
+        // Otherwise, use current GPS location
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(location -> {
+
                         if (location != null) {
+
                             double lat = location.getLatitude();
                             double lng = location.getLongitude();
-                            getAddressFromLocationAndSave(lat, lng, manualAddress);
+
+                            getAddressFromLocationAndSave(
+                                    lat,
+                                    lng,
+                                    ""
+                            );
+
                         } else {
-                            if (!manualAddress.isEmpty()) {
-                                geocodeManualAddressAndSave(manualAddress);
-                            } else {
-                                Toast.makeText(getContext(),
-                                        "Lokasi tidak tersedia dan alamat kosong",
-                                        Toast.LENGTH_SHORT).show();
-                            }
+
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Unable to retrieve current location",
+                                    Toast.LENGTH_SHORT
+                            ).show();
                         }
                     })
-                    .addOnFailureListener(e -> {
 
-                        if (!manualAddress.isEmpty()) {
-                            geocodeManualAddressAndSave(manualAddress);
-                        } else {
-                            Toast.makeText(requireContext(), "Alamat kosong", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    .addOnFailureListener(e ->
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Failed to retrieve location",
+                                    Toast.LENGTH_SHORT
+                            ).show()
+                    );
 
         } else {
-            if (!manualAddress.isEmpty()) {
-                geocodeManualAddressAndSave(manualAddress);
-            } else {
 
-            }
+            Toast.makeText(
+                    requireContext(),
+                    "Please enter an address",
+                    Toast.LENGTH_SHORT
+            ).show();
         }
+//        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+//                == PackageManager.PERMISSION_GRANTED) {
+//            fusedLocationClient.getLastLocation()
+//                    .addOnSuccessListener(location -> {
+//                        if (location != null) {
+//                            double lat = location.getLatitude();
+//                            double lng = location.getLongitude();
+//                            getAddressFromLocationAndSave(lat, lng, manualAddress);
+//                        } else {
+//                            if (!manualAddress.isEmpty()) {
+//                                geocodeManualAddressAndSave(manualAddress);
+//                            } else {
+//                                Toast.makeText(getContext(),
+//                                        "Lokasi tidak tersedia dan alamat kosong",
+//                                        Toast.LENGTH_SHORT).show();
+//                            }
+//                        }
+//                    })
+//                    .addOnFailureListener(e -> {
+//
+//                        if (!manualAddress.isEmpty()) {
+//                            geocodeManualAddressAndSave(manualAddress);
+//                        } else {
+//                            Toast.makeText(requireContext(), "Alamat kosong", Toast.LENGTH_SHORT).show();
+//                        }
+//                    });
+//
+//        } else {
+//            if (!manualAddress.isEmpty()) {
+//                geocodeManualAddressAndSave(manualAddress);
+//            } else {
+//
+//            }
+//        }
     }
     private void getAddressFromLocationAndSave(double latitude, double longitude, String fallbackManualText) {
         Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
@@ -503,25 +550,44 @@ public class ProfileFragment extends Fragment {
         }
     }
     private void saveLocationToFirestore(@Nullable Double latitude, @Nullable Double longitude,String address) {
+        Log.d("LOCATION_SAVE", "Address = " + address);
+        Log.d("LOCATION_SAVE", "Lat = " + latitude);
+        Log.d("LOCATION_SAVE", "Lng = " + longitude);
 
         Map<String, Object> locationMap = new HashMap<>();
+
         if (latitude != null && longitude != null) {
             locationMap.put("latitude", latitude);
             locationMap.put("longitude", longitude);
         }
+
         locationMap.put("address", address);
 
         Map<String, Object> data = new HashMap<>();
         data.put("location", locationMap);
 
         db.collection("users").document(uid)
-                .set(data, com.google.firebase.firestore.SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Location", "Location saved to Firestore");
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Location", "Error saving location", e);
-                });
+                .set(data,
+                        com.google.firebase.firestore.SetOptions.merge());
+
+//        Map<String, Object> locationMap = new HashMap<>();
+//        if (latitude != null && longitude != null) {
+//            locationMap.put("latitude", latitude);
+//            locationMap.put("longitude", longitude);
+//        }
+//        locationMap.put("address", address);
+//
+//        Map<String, Object> data = new HashMap<>();
+//        data.put("location", locationMap);
+//
+//        db.collection("users").document(uid)
+//                .set(data, com.google.firebase.firestore.SetOptions.merge())
+//                .addOnSuccessListener(aVoid -> {
+////                    Log.d("Location", "Location saved to Firestore");
+//                })
+//                .addOnFailureListener(e -> {
+////                    Log.e("Location", "Error saving location", e);
+//                });
     }
 
 

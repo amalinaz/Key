@@ -123,6 +123,14 @@
                             android:text="TextView" />
 
                         <TextView
+                            android:id="@+id/sd_locTypeTV"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/alegreyasans_medium"
+                            android:text="TextView" />
+
+                        <TextView
                             android:id="@+id/sd_distTV"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

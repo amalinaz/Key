@@ -2,14 +2,14 @@ package com.example.keyapp.Models;
 
 public class User {
     private String userID, userName, email, password, profileImageUrl;
-    private Integer userlvl;
+    private Integer userRole;
 
-    public User(String userID, String userName, String email, String password, Integer userlvl, String profileImageUrl) {
+    public User(String userID, String userName, String email, String password, Integer userRole, String profileImageUrl) {
         this.userID = userID;
         this.userName = userName;
         this.email = email;
         this.password = password;
-        this.userlvl = userlvl;
+        this.userRole = userRole;
         this.profileImageUrl = profileImageUrl;
     }
 
@@ -56,10 +56,10 @@ public class User {
         this.userID = userID;
     }
 
-    public Integer getUserlvl() {
-        return userlvl;
+    public Integer getUserRole() {
+        return userRole;
     }
-    public void setUserlvl(Integer userlvl) {
-        this.userlvl = userlvl;
+    public void setUserRole(Integer userRole) {
+        this.userRole = userRole;
     }
 }

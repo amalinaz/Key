@@ -1,11 +1,13 @@
 package com.example.keyapp;
 
+import android.app.AlertDialog;
 import android.app.TimePickerDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.keyapp.Adapter.TimeListAdapter;
@@ -32,8 +35,7 @@ import java.util.Map;
 public class ManageScheduleFragment extends Fragment {
 
     LinearLayout availableTimeLayout;
-    Button ms_saveBtn;
-    ImageButton ms_backBtn;
+    ImageButton ms_backBtn, ms_saveBtn, ms_infoBtn;
     private String[] daysOfWeek;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -45,7 +47,8 @@ public class ManageScheduleFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_manage_schedule, container, false);
         availableTimeLayout = rootView.findViewById(R.id.availableTimeLayout);
         ms_saveBtn = rootView.findViewById(R.id.ms_saveBtn);
-        ms_backBtn = rootView.findViewById(R.id.oldetail_backBtn);
+        ms_backBtn = rootView.findViewById(R.id.ms_backBtn);
+        ms_infoBtn = rootView.findViewById(R.id.ms_infoBtn);
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -62,6 +65,49 @@ public class ManageScheduleFragment extends Fragment {
             getParentFragmentManager().popBackStack();
         });
 
+
+        setAvailableDays(inflater, availableTimes, daysChecked);
+        loadScheduleData();
+
+        ms_saveBtn.setOnClickListener(v -> {
+            Map<String, Object> scheduleData = new HashMap<>();
+            scheduleData.put("daysChecked", daysChecked);
+            scheduleData.put("availableTimes", availableTimes);
+
+            if (!availableTimes.isEmpty()) {
+               saveScheduleData(scheduleData);
+            }
+        });
+
+        ms_infoBtn.setOnClickListener(v -> {
+            showInfo();
+        });
+
+        return rootView;
+    }
+
+    private void showInfo(){
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).create();
+        View view = getLayoutInflater().inflate(R.layout.layout_info_dialog, null);
+        dialog.setView(view);
+        if(dialog.getWindow() != null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        dialog.setCancelable(false);
+
+        TextView titleTV = view.findViewById(R.id.dialog_title);
+        TextView messageTV = view.findViewById(R.id.dialog_message);
+        ImageButton closeBtn = view.findViewById(R.id.dialog_btn);
+
+        titleTV.setText("Manage Schedule Tips");
+        messageTV.setText("Tap a time slot to edit it.\n" + "Press and hold a time slot to delete it.");
+
+        closeBtn.setOnClickListener(v -> dialog.dismiss());
+
+    }
+
+    private void setAvailableDays(LayoutInflater inflater, Map<String, List<String>> availableTimes, Map<String, Boolean> daysChecked){
         for (String day : daysOfWeek) {
 
             View row = inflater.inflate(R.layout.item_available_time_row, availableTimeLayout, false);
@@ -126,8 +172,7 @@ public class ManageScheduleFragment extends Fragment {
             });
 
             timeList.setOnItemLongClickListener((parent, view, position, id) -> {
-                timesForThisDay.remove(position);
-                adapter.notifyDataSetChanged();
+                deleteDialog(timesForThisDay,position,adapter);
                 return true;
             });
 
@@ -135,6 +180,39 @@ public class ManageScheduleFragment extends Fragment {
 
             availableTimeLayout.addView(row);
         }
+    }
+
+    private void deleteDialog(List<String> timesForThisDay, int position, TimeListAdapter adapter){
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).create();
+        View view = getLayoutInflater().inflate(R.layout.layout_alert_dialog, null);
+        dialog.setView(view);
+        if(dialog.getWindow() != null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        dialog.setCancelable(false);
+
+        TextView titleTV = view.findViewById(R.id.dialog_title);
+        TextView messageTV = view.findViewById(R.id.dialog_message);
+        Button rejectBtn = view.findViewById(R.id.dialog_btnA);
+        Button acceptBtn = view.findViewById(R.id.dialog_btnB);
+
+        titleTV.setText("Delete Schedule");
+        messageTV.setText("Are you sure you want to delete the selected time slot?");
+        rejectBtn.setText("No");
+        acceptBtn.setText("Delete");
+
+        acceptBtn.setOnClickListener(v -> {
+            timesForThisDay.remove(position);
+            dialog.dismiss();
+            adapter.notifyDataSetChanged();
+
+        });
+
+        rejectBtn.setOnClickListener(v -> dialog.dismiss());
+
+    }
+    private void loadScheduleData(){
         db.collection("user_schedules")
                 .document(uid)
                 .get()
@@ -166,29 +244,20 @@ public class ManageScheduleFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Gagal memuat data", Toast.LENGTH_SHORT).show();
                 });
+    }
 
-        ms_saveBtn.setOnClickListener(v -> {
-            Map<String, Object> scheduleData = new HashMap<>();
-            scheduleData.put("daysChecked", daysChecked);
-            scheduleData.put("availableTimes", availableTimes);
-
-                if (!availableTimes.isEmpty()) {
-                    db.collection("user_schedules").document(uid)
-                            .set(scheduleData, SetOptions.merge())
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(requireContext(),
-                                        "Waktu berhasil disimpan",
-                                        Toast.LENGTH_SHORT).show();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(requireContext(),
-                                        "Gagal menyimpan waktu",
-                                        Toast.LENGTH_SHORT).show();
-                            });
-                }
-        });
-
-
-        return rootView;
+    private void saveScheduleData(Map<String, Object> scheduleData){
+        db.collection("user_schedules").document(uid)
+                .set(scheduleData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(requireContext(),
+                            "Waktu berhasil disimpan",
+                            Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(),
+                            "Gagal menyimpan waktu",
+                            Toast.LENGTH_SHORT).show();
+                });
     }
 }
