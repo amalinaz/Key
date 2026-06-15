@@ -120,7 +120,7 @@ public class RegisterBAActivity extends AppCompatActivity {
                                     if (userCounter == null) {
                                         userCounter = 1;
                                         counterRef.setValue(userCounter);
-                                        Log.d("Firebase", "Setting initial userCounter to 1");
+
                                     }
 
                                     String userId = "U" + String.format("%03d", userCounter+1);

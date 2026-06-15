@@ -103,8 +103,6 @@ public class OrderListDetailFragment extends Fragment {
 
         rescheduleRequest();
 
-        Log.d("reschedule", "role:"+role);
-
         if(role == 1){
             userView();
         }else if(role == 2){

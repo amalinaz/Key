@@ -195,7 +195,6 @@ public class ProfileFragment extends Fragment {
                             profile_locCL.setVisibility(View.VISIBLE);
 
                             if (locationType != null) {
-                                Log.d("Profile", "loctypenya :"+locationType);
                                 for (int i = 0; i < locTypeRG.getChildCount(); i++) {
                                     RadioButton radioButton = (RadioButton) locTypeRG.getChildAt(i);
                                     if (locationType.equals("studiovisit") && radioButton.getText().toString().equals("On-site Studio / Studio Visit")) {

@@ -49,20 +49,25 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:textSize="16sp"
                 android:text="@string/ServiceName"
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/old_id" />
 
             <TextView
                 android:id="@+id/old_serviceTV"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="24dp"
-                android:textSize="16sp"
+                android:ellipsize="end"
+                android:maxLines="2"
                 android:text="TextView"
+                android:textAlignment="textEnd"
+                android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/textView30"
                 app:layout_constraintTop_toBottomOf="@+id/old_idTV" />
 
             <TextView
@@ -74,7 +79,7 @@
                 android:text="Customer Name"
                 android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textView30" />
+                app:layout_constraintTop_toBottomOf="@+id/old_serviceTV" />
 
             <TextView
                 android:id="@+id/old_custNameTV"
@@ -96,7 +101,7 @@
                 android:text="DateTime"
                 android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textView32" />
+                app:layout_constraintTop_toBottomOf="@+id/old_custNameTV" />
 
             <TextView
                 android:id="@+id/old_dateTimeTV"

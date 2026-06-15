@@ -112,9 +112,6 @@ public class PaymentFragment extends Fragment {
         bookScheduleAdapter = new BookScheduleAdapter(bookScheduleItemsList, getContext());
         pay_itemRV.setAdapter(bookScheduleAdapter);
 
-
-        Log.d("uid", "uid" + uid);
-
         pay_subtotalTV.setText(Double.toString(servicePrice));
         pay_totalTV.setText(Double.toString(servicePrice));
 

@@ -107,7 +107,6 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
             }
 
             String locationType ="";
-            Log.d("Service Detail", "Loctype" +locType);
             if(locType.equals("homevisit")){
                 locationType = "Home Visit";
             }else if(locType.equals("studiovisit")){
