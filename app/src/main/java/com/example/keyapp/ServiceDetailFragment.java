@@ -129,7 +129,7 @@ public class ServiceDetailFragment extends Fragment implements SDPortofolioAdapt
             Bundle bundle = new Bundle();
             bundle.putString("BAid", BAid);
             bookAppointment.setArguments(bundle);
-            ((MainActivity) requireActivity()).openFragment(bookAppointment, false);
+            ((MainActivity) requireActivity()).openFragment(bookAppointment, true);
         });
 
         sd_chatBtn.setOnClickListener(v -> {

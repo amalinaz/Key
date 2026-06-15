@@ -32,33 +32,47 @@
         android:layout_width="match_parent"
         android:layout_height="99dp">
 
-        <ImageButton
-            android:id="@+id/regBA_signInBtn2"
-            android:layout_width="174dp"
-            android:layout_height="67dp"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="24dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/signin"
-            android:scaleType="fitCenter"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/signin_nh" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/regBA_signUpBtn2"
-            android:layout_width="174dp"
-            android:layout_height="67dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="32dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/signup"
-            android:scaleType="fitCenter"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toEndOf="@+id/regBA_signInBtn2"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/signup" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/regBA_signInBtn2"
+                    android:layout_width="174dp"
+                    android:layout_height="67dp"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="24dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/signin"
+                    android:scaleType="fitCenter"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/signin_nh" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/regBA_signUpBtn2"
+                    android:layout_width="174dp"
+                    android:layout_height="67dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/signup"
+                    android:scaleType="fitCenter"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/signup" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -80,7 +94,7 @@
 
         <TextView
             android:id="@+id/textView3"
-            android:layout_width="143dp"
+            android:layout_width="wrap_content"
             android:layout_height="49dp"
             android:layout_marginStart="32dp"
             android:layout_marginTop="16dp"

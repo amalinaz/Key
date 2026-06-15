@@ -356,7 +356,7 @@ public class AddServiceFragment extends Fragment {
                 .set(service)
                 .addOnSuccessListener(aVoid -> {
                     updateMinPrice(service.getBAid(), service.getServicePrice());
-                    Toast.makeText(requireContext(), "Service data saved to Firestore", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Success add service", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Failed to save Service data", Toast.LENGTH_SHORT).show();

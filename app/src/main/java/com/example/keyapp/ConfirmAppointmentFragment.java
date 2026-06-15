@@ -166,7 +166,7 @@ public class ConfirmAppointmentFragment extends Fragment {
 
             PaymentFragment paymentFragment = new PaymentFragment();
             paymentFragment.setArguments(bundle);
-            ((MainActivity) requireActivity()).openFragment(paymentFragment, false);
+            ((MainActivity) requireActivity()).openFragment(paymentFragment, true);
 
         });
 

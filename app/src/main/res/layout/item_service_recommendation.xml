@@ -17,18 +17,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/srec_IV"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="24dp"
-
+                android:scaleType="centerCrop"
                 android:layout_marginBottom="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:srcCompat="@tools:sample/avatars" />
+                tools:srcCompat="@tools:sample/avatars"
+                app:shapeAppearanceOverlay="@style/roundedImageView" />
+
 
             <TextView
                 android:id="@+id/sr_name_TV"

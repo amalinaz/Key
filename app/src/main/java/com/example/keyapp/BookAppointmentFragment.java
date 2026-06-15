@@ -150,6 +150,6 @@ public class BookAppointmentFragment extends Fragment implements ScheduleItemAda
         bundle.putString("serviceName", serviceName);
         bundle.putDouble("servicePrice", servicePrice);
         confirmAppointmentFragment.setArguments(bundle);
-        ((MainActivity) requireActivity()).openFragment(confirmAppointmentFragment, false);
+        ((MainActivity) requireActivity()).openFragment(confirmAppointmentFragment, true);
     }
 }

@@ -23,10 +23,10 @@ public class BAProfileHelper {
         double minPrice = providers.stream().mapToDouble(p -> p.getMinPrice()).min().orElse(1);
 
         for (BAprofile p : providers) {
-            double normRating = p.getRating()/maxRating;
-            double normDistance = minDistance/p.getDistance();
-            double normExp = p.getExperience()/maxExp;
-            double normPrice = (double)minPrice/p.getMinPrice();
+            double normRating = p.getRating()/maxRating; // benefit
+            double normDistance = minDistance/p.getDistance(); //cost
+            double normExp = p.getExperience()/maxExp; //benefit
+            double normPrice = (double)minPrice/p.getMinPrice(); //cost
 
             double score = normRating*wRating + normDistance*wDistance + normExp*wExperience + normPrice*wPrice;
             p.setScore(score);

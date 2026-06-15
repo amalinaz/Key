@@ -63,8 +63,11 @@
                         android:id="@+id/sd_profileIV"
                         android:layout_width="350dp"
                         android:layout_height="350dp"
+                        android:scaleType="centerCrop"
                         app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.491"
                         app:layout_constraintStart_toStartOf="parent"
+                        tools:layout_editor_absoluteY="0dp"
                         tools:src="@tools:sample/avatars" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
