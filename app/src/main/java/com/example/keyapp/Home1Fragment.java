@@ -23,9 +23,12 @@ import com.bumptech.glide.Glide;
 import com.example.keyapp.Adapter.ServiceRecAdapter;
 import com.example.keyapp.Helper.BAProfileHelper;
 import com.example.keyapp.Models.BAprofile;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,29 +85,7 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
 
         db = FirebaseFirestore.getInstance();
         String uid = auth.getCurrentUser().getUid();
-
-        db.collection("users").document(uid)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if(doc.exists()){
-                        Map<String, Object> location = (Map<String, Object>) doc.get("location");
-
-                        if (location != null) {
-                            latUser = (double) location.get("latitude");
-                            lonUser = (double) location.get("longitude");
-                        }
-
-                        String getImage = doc.getString("profileImageUrl");
-                        if(getImage!= null){
-                            Glide.with(this)
-                                    .load(getImage)
-                                    .into(main_profile);
-                        }else{
-                            main_profile.setImageResource(R.drawable.profile_no);
-                        }
-
-                    }
-                });
+        getUserLoc(uid);
 
 
         srRV = rootview.findViewById(R.id.main_ServiceRV);
@@ -150,44 +131,68 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
         return rootview;
     }
 
+    private void getUserLoc(String uid){
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if(doc.exists()){
+                        Map<String, Object> location = (Map<String, Object>) doc.get("location");
+
+                        if (location != null) {
+                            latUser = (double) location.get("latitude");
+                            lonUser = (double) location.get("longitude");
+                        }
+
+                        String getImage = doc.getString("profileImageUrl");
+                        if(getImage!= null){
+                            Glide.with(this)
+                                    .load(getImage)
+                                    .into(main_profile);
+                        }else{
+                            main_profile.setImageResource(R.drawable.profile_no);
+                        }
+
+                    }
+                });
+
+    }
     private void fetchBAProfiles(String category) {
         BAlist.clear();
         srAdapter.notifyDataSetChanged();
 
-        Map<String, List<DocumentSnapshot>> serviceMap = new HashMap<>();
-        db.collection("service")
-                .get().addOnSuccessListener(serviceQuery -> {
-            for(DocumentSnapshot doc : serviceQuery){
-                String BAid = doc.getString("baid");
-                String Category = doc.getString("serviceCategory");
-
-                if(Category.equals(category)){
-                    if (!serviceMap.containsKey(BAid))
-                        serviceMap.put(BAid, new ArrayList<>());
-                    serviceMap.get(BAid).add(doc);
-                }
-            }
-        });
-
-        db.collection("users")
+        Task<QuerySnapshot> serviceTask = db.collection("service").get();
+        Task<QuerySnapshot> userTask = db.collection("users")
                 .whereEqualTo("userRole", 2)
-                .get()
-                .addOnSuccessListener(userQuery -> {
-                    List<BAprofile> finalList = new ArrayList<>();
+                .get();
 
+        Tasks.whenAllSuccess(serviceTask, userTask)
+                .addOnSuccessListener(results -> {
+                    QuerySnapshot serviceQuery = (QuerySnapshot) results.get(0);
+                    QuerySnapshot userQuery = (QuerySnapshot) results.get(1);
+
+                    Map<String, List<DocumentSnapshot>> serviceMap = new HashMap<>();
+                    for (DocumentSnapshot doc : serviceQuery) {
+                        String BAid = doc.getString("baid");
+                        String Category = doc.getString("serviceCategory");
+                        if (category.equals(Category)) {
+                            serviceMap.computeIfAbsent(BAid, k -> new ArrayList<>()).add(doc);
+                        }
+                    }
+
+                    List<BAprofile> finalList = new ArrayList<>();
                     for (DocumentSnapshot userDoc : userQuery) {
                         String uid = userDoc.getId();
                         String locType = userDoc.getString("locationType");
-                        Log.d("Home", "Loctyope pas baca" + locType);
                         locationTypeMap.put(uid, locType);
-                        if(serviceMap.containsKey(uid)){
+
+                        if (serviceMap.containsKey(uid)) {
                             Double latitude = userDoc.getDouble("location.latitude");
                             Double longitude = userDoc.getDouble("location.longitude");
                             if (latitude == null || longitude == null) continue;
 
-                            float[] results = new float[1];
-                            Location.distanceBetween(latUser, lonUser, latitude, longitude, results);
-                            double jarakKm = results[0] / 1000.0;
+                            float[] results2 = new float[1];
+                            Location.distanceBetween(latUser, lonUser, latitude, longitude, results2);
+                            double jarakKm = results2[0] / 1000.0;
 
                             BAprofile ba = new BAprofile(uid,
                                     userDoc.getString("userName"),
@@ -201,12 +206,15 @@ public class Home1Fragment extends Fragment implements ServiceRecAdapter.OnItemC
                     }
 
                     List<BAprofile> ranked = BAProfileHelper.rankProviders(finalList);
-
                     BAlist.clear();
                     BAlist.addAll(ranked);
                     srAdapter.notifyDataSetChanged();
                     pb.setVisibility(View.GONE);
                     srRV.setVisibility(View.VISIBLE);
+                })
+                .addOnFailureListener(e -> {
+                    pb.setVisibility(View.GONE);
+                    Log.e("Home", "Gagal fetch profiles", e);
                 });
         }
 
